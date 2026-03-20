@@ -1,0 +1,62 @@
+{
+  "sections": [
+    {
+      "id": "robins",
+      "name": "Robins",
+      "subtitle": "Senior Teams",
+      "icon": "fa-shield-alt",
+      "teams": [
+        {
+          "name": "First Team",
+          "description": "Our flagship senior side, competing in the local Saturday league. Training Tuesday and Thursday evenings.",
+          "photo": "",
+          "manager": "TBC",
+          "coach": "TBC",
+          "contact": "TBC"
+        },
+        {
+          "name": "Reserves",
+          "description": "Providing competitive football and a development pathway into the first team. A great environment for players looking to step up.",
+          "photo": "",
+          "manager": "TBC",
+          "coach": "TBC",
+          "contact": "TBC"
+        }
+      ]
+    },
+    {
+      "id": "bantams",
+      "name": "Bantams",
+      "subtitle": "Youth, Girls & Ladies",
+      "icon": "fa-star",
+      "teams": [
+        {
+          "name": "Youth Teams",
+          "description": "Developing the next generation. Age groups from Under 7s through to Under 16s — coaching sessions every weekend at the Pavilion.",
+          "photo": "",
+          "manager": "TBC",
+          "managerLabel": "Youth Coordinator",
+          "coach": "TBC",
+          "coachLabel": "Coaches",
+          "contact": "TBC"
+        },
+        {
+          "name": "Girls",
+          "description": "Growing girls' football in East Leake. Whether your daughter is a complete beginner or already playing — come and join the Bantams family.",
+          "photo": "",
+          "manager": "TBC",
+          "coach": "TBC",
+          "contact": "TBC"
+        },
+        {
+          "name": "Ladies",
+          "description": "Our ladies team competes in the local women's league. New players of all abilities are always welcome — come along to a session.",
+          "photo": "",
+          "manager": "TBC",
+          "coach": "TBC",
+          "contact": "TBC"
+        }
+      ]
+    }
+  ]
+}
