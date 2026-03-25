@@ -65,8 +65,8 @@ export function FixturesResultsPage({ feed }: Props) {
   const teamNames = useMemo(() => {
     if (!feed) return [];
     const names = new Set<string>();
-    feed.fixtures.forEach((f) => names.add(f.team));
-    feed.results.forEach((r) => names.add(r.team));
+    feed.fixtures.forEach((f) => f.team && names.add(f.team));
+    feed.results.forEach((r) => r.team && names.add(r.team));
     return Array.from(names).sort();
   }, [feed]);
 
@@ -114,9 +114,10 @@ export function FixturesResultsPage({ feed }: Props) {
         placeholder="All Bantams teams"
         data={teamNames}
         value={selectedTeam}
-        onChange={setSelectedTeam}
+        onChange={(value) => setSelectedTeam(value)}
         clearable
         searchable
+        allowDeselect={false}
       />
 
       <Tabs defaultValue="fixtures" color="orange">
