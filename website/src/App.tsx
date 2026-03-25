@@ -15,6 +15,8 @@ import { NewsPage } from './pages/NewsPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { MatchdayPage } from './pages/MatchdayPage';
 import { ContactPage } from './pages/ContactPage';
+import { FixturesResultsPage } from './pages/FixturesResultsPage';
+import { TeamPage } from './pages/TeamPage';
 
 export default function App() {
   const [data, setData] = useState<AppData | null>(null);
@@ -47,6 +49,7 @@ export default function App() {
           <SiteSidebar
             club={data.club}
             fixture={data.fixtures.next}
+            bantamsFeed={data.bantamsFeed}
             onNavClick={close}
           />
         </AppShell.Navbar>
@@ -55,7 +58,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage club={data.club} />} />
             <Route path="/about" element={<AboutPage club={data.club} />} />
-            <Route path="/teams" element={<TeamsPage teams={data.teams} />} />
+            <Route path="/teams" element={<TeamsPage teams={data.teams} bantamsTeams={data.bantamsTeams} />} />
+            <Route path="/teams/:teamSlug" element={<TeamPage bantamsTeams={data.bantamsTeams} />} />
+            <Route path="/fixtures" element={<FixturesResultsPage feed={data.bantamsFeed} />} />
             <Route path="/register" element={<RegisterPage items={data.registration} />} />
             <Route path="/committee" element={<CommitteePage committee={data.committee} teams={data.teams} />} />
             <Route path="/news" element={<NewsPage items={data.news} />} />

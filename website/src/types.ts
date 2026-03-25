@@ -100,6 +100,48 @@ export interface FixturesData {
   next: Fixture;
 }
 
+export interface BantamsFixture {
+  id: string;
+  date: string;
+  time: string;
+  home_team: string;
+  away_team: string;
+  venue: string;
+  division: string;
+  league: string;
+  team: string;
+  home_away: 'home' | 'away';
+  opponent: string;
+}
+
+export interface BantamsResult extends BantamsFixture {
+  home_score: number | null;
+  away_score: number | null;
+  goals_for: number | null;
+  goals_against: number | null;
+}
+
+export interface BantamsFeed {
+  club: string;
+  generated: string;
+  fixtures: BantamsFixture[];
+  results: BantamsResult[];
+}
+
+export interface BantamsTeam {
+  name: string;
+  slug: string;
+  league: string; // league slug, e.g. "yel-east-midlands-sunday-25-26"
+}
+
+export interface BantamsTeamFeed {
+  team: string;
+  league: string;
+  generated: string;
+  fixtures: Omit<BantamsFixture, 'team' | 'home_away' | 'opponent'>[];
+  results: Omit<BantamsResult, 'team' | 'home_away' | 'opponent' | 'goals_for' | 'goals_against'>[];
+}
+
 export interface AppData {
   club: Club;
   teams: TeamsData;
@@ -109,4 +151,6 @@ export interface AppData {
   fixtures: FixturesData;
   gallery: GalleryItem[];
   matchday: MatchdayItem[];
+  bantamsFeed: BantamsFeed | null;
+  bantamsTeams: BantamsTeam[];
 }
