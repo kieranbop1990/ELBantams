@@ -16,11 +16,11 @@ export function HomePage({ club }: Props) {
               <Title order={1} c="orange.6">{club.name}</Title>
               <Text size="lg" c="dimmed">{club.tagline}</Text>
             </div>
-            <Text>
-              Home of the <strong>Robins</strong> (senior teams) and{' '}
-              <strong>East Leake Bantams</strong> (youth, girls &amp; ladies). A village
-              football club rooted in community, driven by passion, and building for the future.
-            </Text>
+            {club.homeBanner ? (
+              <Text dangerouslySetInnerHTML={{ __html: club.homeBanner }} />
+            ) : (
+              <Text>{club.tagline}</Text>
+            )}
             <Group>
               <Button component={Link} to="/about" variant="outline" color="orange">
                 About Us
@@ -30,13 +30,15 @@ export function HomePage({ club }: Props) {
               </Button>
             </Group>
           </Stack>
-          <Image
-            src="images/Bantams.webp"
-            alt={`${club.name} Badge`}
-            w={160}
-            h={160}
-            fit="contain"
-          />
+          {club.badge && (
+            <Image
+              src={club.badge}
+              alt={`${club.name} Badge`}
+              w={160}
+              h={160}
+              fit="contain"
+            />
+          )}
         </Group>
       </Paper>
 

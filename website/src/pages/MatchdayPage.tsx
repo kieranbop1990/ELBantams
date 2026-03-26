@@ -1,10 +1,17 @@
 import { Title, Text, SimpleGrid, Paper, ThemeIcon, Group, Stack, Badge, Image } from '@mantine/core';
-import type { MatchdayItem } from '../types';
+import type { Club, MatchdayItem } from '../types';
 import { tablerIcon } from '../utils/icons';
 
-interface Props { items: MatchdayItem[] }
+interface Props {
+  items: MatchdayItem[];
+  club: Club;
+}
 
-export function MatchdayPage({ items }: Props) {
+export function MatchdayPage({ items, club }: Props) {
+  const badges = club.matchdayBadges ?? [];
+  const groundImage = club.groundImage;
+  const groundImageAlt = club.groundImageAlt ?? `${club.name} — ground map`;
+
   return (
     <Stack gap="xl">
       <Title order={2}>Visitor &amp; Matchday Information</Title>
@@ -25,17 +32,23 @@ export function MatchdayPage({ items }: Props) {
         ))}
       </SimpleGrid>
 
-      <Group gap="xs">
-        <Badge color="orange" variant="light" size="lg">FA Charter Standard</Badge>
-        <Badge color="blue" variant="light" size="lg">FA Respect</Badge>
-        <Badge color="pink" variant="light" size="lg">Proud For All</Badge>
-      </Group>
+      {badges.length > 0 && (
+        <Group gap="xs">
+          {badges.map((badge, i) => (
+            <Badge key={i} color={badge.color} variant="light" size="lg">
+              {badge.label}
+            </Badge>
+          ))}
+        </Group>
+      )}
 
-      <Image
-        src="images/details.jpeg"
-        alt="East Leake FC — Visitor information, pitch layout and ground map"
-        radius="md"
-      />
+      {groundImage && (
+        <Image
+          src={groundImage}
+          alt={groundImageAlt}
+          radius="md"
+        />
+      )}
     </Stack>
   );
 }

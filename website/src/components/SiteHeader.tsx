@@ -13,7 +13,10 @@ interface Props {
 }
 
 export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
-  const clubShort = club.name.replace(' FC', '');
+  // Use tagShort if provided, otherwise strip a trailing " FC" suffix
+  const clubShort = club.tagShort ?? club.name.replace(/ FC$/i, '');
+  const showFcSuffix = !club.tagShort && / FC$/i.test(club.name);
+
   const { activeSection, setActiveSection } = useSection();
   const activeData = activeSection !== 'all'
     ? sections.find(s => s.id === activeSection)
@@ -35,7 +38,10 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
           c="orange.6"
           style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
         >
-          {clubShort} <Text component="span" fw={400} c="dimmed">FC</Text>
+          {clubShort}
+          {showFcSuffix && (
+            <Text component="span" fw={400} c="dimmed"> FC</Text>
+          )}
         </Text>
       </Group>
 

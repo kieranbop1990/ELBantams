@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppShell, Center, Loader } from '@mantine/core';
+import { AppShell, Center, Loader, MantineProvider } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { loadAllData } from './data';
 import type { AppData } from './types';
+import { createClubTheme } from './theme';
 import { SiteHeader } from './components/SiteHeader';
 import { SiteSidebar } from './components/SiteSidebar';
 import { SectionProvider } from './context/SectionContext';
@@ -35,7 +36,10 @@ export default function App() {
     );
   }
 
+  const clubTheme = createClubTheme(data.club.primaryColor);
+
   return (
+    <MantineProvider theme={clubTheme}>
     <SectionProvider>
     <HashRouter>
       <AppShell
@@ -67,7 +71,7 @@ export default function App() {
             <Route path="/committee" element={<CommitteePage committee={data.committee} teams={data.teams} />} />
             <Route path="/news" element={<NewsPage items={data.news} />} />
             <Route path="/gallery" element={<GalleryPage items={data.gallery} />} />
-            <Route path="/matchday" element={<MatchdayPage items={data.matchday} />} />
+            <Route path="/matchday" element={<MatchdayPage items={data.matchday} club={data.club} />} />
             <Route path="/contact" element={<ContactPage club={data.club} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
@@ -75,5 +79,6 @@ export default function App() {
       </AppShell>
     </HashRouter>
     </SectionProvider>
+    </MantineProvider>
   );
 }

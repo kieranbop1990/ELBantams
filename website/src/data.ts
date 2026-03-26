@@ -1,9 +1,8 @@
-import type { AppData, ClubFeed, LiveTeam, TeamFeed, TeamsData } from './types';
+import type { AppData, Club, ClubFeed, LiveTeam, TeamFeed, TeamsData } from './types';
 
 const BASE = 'data/';
 const FEEDS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/feeds/';
 const CALENDARS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/calendars/';
-const CLUB_FEED_URL = `${FEEDS_BASE}clubs/east-leake.json`;
 const INDEX_URL = `${FEEDS_BASE}index.json`;
 
 export function teamFeedUrl(league: string, slug: string): string {
@@ -30,9 +29,9 @@ async function load<T>(file: string): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-async function loadClubFeed(): Promise<ClubFeed | null> {
+async function loadClubFeed(feedSlug: string): Promise<ClubFeed | null> {
   try {
-    const res = await fetch(CLUB_FEED_URL);
+    const res = await fetch(`${FEEDS_BASE}clubs/${feedSlug}.json`);
     if (!res.ok) return null;
     return res.json() as Promise<ClubFeed>;
   } catch {
@@ -40,7 +39,7 @@ async function loadClubFeed(): Promise<ClubFeed | null> {
   }
 }
 
-async function loadLiveTeams(): Promise<LiveTeam[]> {
+async function loadLiveTeams(teamSlugPrefix: string): Promise<LiveTeam[]> {
   try {
     const res = await fetch(INDEX_URL);
     if (!res.ok) return [];
@@ -48,7 +47,7 @@ async function loadLiveTeams(): Promise<LiveTeam[]> {
     const teams: LiveTeam[] = [];
     for (const league of data.leagues) {
       for (const team of league.teams) {
-        if (team.slug.startsWith('east-leake-')) {
+        if (team.slug.startsWith(teamSlugPrefix)) {
           teams.push({ name: team.name, slug: team.slug, league: league.slug });
         }
       }
@@ -60,20 +59,25 @@ async function loadLiveTeams(): Promise<LiveTeam[]> {
 }
 
 export async function loadAllData(): Promise<AppData> {
-  const [club, teams, committee, registration, news, gallery, matchday, clubFeed, liveTeams] =
+  // Load club config first so we can derive external feed URLs from it
+  const club = await load<Club>('club.json');
+
+  const feedSlug = club.clubFeedSlug ?? '';
+  const teamSlugPrefix = club.teamSlugPrefix ?? `${feedSlug}-`;
+
+  const [teams, committee, registration, news, gallery, matchday, clubFeed, liveTeams] =
     await Promise.all([
-      load('club.json'),
-      load('teams.json'),
+      load<TeamsData>('teams.json'),
       load('committee.json'),
       load('registration.json'),
       load('news.json'),
       load('gallery.json'),
       load('matchday.json'),
-      loadClubFeed(),
-      loadLiveTeams(),
+      loadClubFeed(feedSlug),
+      loadLiveTeams(teamSlugPrefix),
     ]);
 
-  const sidebarConfigs = (teams as TeamsData).sections
+  const sidebarConfigs = teams.sections
     .flatMap(s => s.teams.filter(t => t.sidebar && t.slug).map(t => ({ slug: t.slug!, label: t.name, sectionId: s.id })));
 
   const resolvedFeeds = await Promise.all(

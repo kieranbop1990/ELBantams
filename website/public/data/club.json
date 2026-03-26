@@ -1,5 +1,6 @@
 {
   "name": "East Leake FC",
+  "tagShort": "East Leake",
   "tagline": "Robins & Bantams — Est. 1975",
   "founded": 1975,
   "email": "info@eastleakefc.co.uk",
@@ -16,6 +17,30 @@
   },
   "colours": "Orange, white and black",
   "kitDescription": "Our Nike home kit features an orange shirt with black shorts.",
+  "badge": "images/Bantams.webp",
+  "primaryColor": "orange",
+  "clubFeedSlug": "east-leake",
+  "teamSlugPrefix": "east-leake-",
+  "homeBanner": "Home of the <strong>Robins</strong> (senior teams) and <strong>East Leake Bantams</strong> (youth, girls &amp; ladies). A village football club rooted in community, driven by passion, and building for the future.",
+  "groundImage": "images/details.jpeg",
+  "groundImageAlt": "East Leake FC — Visitor information, pitch layout and ground map",
+  "matchdayBadges": [
+    { "label": "FA Charter Standard", "color": "orange" },
+    { "label": "FA Respect", "color": "blue" },
+    { "label": "Proud For All", "color": "pink" }
+  ],
+  "nav": [
+    { "to": "/",          "label": "Home",               "icon": "fa-home" },
+    { "to": "/about",     "label": "About Us",           "icon": "fa-info-circle" },
+    { "to": "/teams",     "label": "Teams",              "icon": "fa-users" },
+    { "to": "/fixtures",  "label": "Fixtures & Results", "icon": "fa-calendar" },
+    { "to": "/register",  "label": "Register & Pay",     "icon": "fa-credit-card" },
+    { "to": "/committee", "label": "Committee & Staff",  "icon": "fa-id-card" },
+    { "to": "/news",      "label": "Club News",          "icon": "fa-newspaper" },
+    { "to": "/gallery",   "label": "Gallery",            "icon": "fa-images" },
+    { "to": "/matchday",  "label": "Matchday Info",      "icon": "fa-map-marker-alt" },
+    { "to": "/contact",   "label": "Contact",            "icon": "fa-envelope" }
+  ],
   "about": [
     {
       "icon": "fa-futbol",

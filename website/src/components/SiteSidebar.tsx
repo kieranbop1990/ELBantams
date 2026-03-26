@@ -1,23 +1,21 @@
 import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button } from '@mantine/core';
 import { useLocation, Link } from 'react-router-dom';
-import {
-  IconHome, IconInfoCircle, IconUsers, IconCreditCard, IconId,
-  IconNews, IconPhoto, IconMapPin, IconMail, IconCalendar,
-} from '@tabler/icons-react';
-import type { Club, TeamFeed, TeamSection } from '../types';
+import { IconCalendar } from '@tabler/icons-react';
+import type { Club, NavItem, TeamFeed, TeamSection } from '../types';
 import { useSection } from '../context/SectionContext';
+import { tablerIcon } from '../utils/icons';
 
-const NAV_ITEMS = [
-  { to: '/',          label: 'Home',              icon: <IconHome size={16} /> },
-  { to: '/about',     label: 'About Us',          icon: <IconInfoCircle size={16} /> },
-  { to: '/teams',     label: 'Teams',             icon: <IconUsers size={16} /> },
-  { to: '/fixtures',  label: 'Fixtures & Results', icon: <IconCalendar size={16} /> },
-  { to: '/register',  label: 'Register & Pay',    icon: <IconCreditCard size={16} /> },
-  { to: '/committee', label: 'Committee & Staff', icon: <IconId size={16} /> },
-  { to: '/news',      label: 'Club News',         icon: <IconNews size={16} /> },
-  { to: '/gallery',   label: 'Gallery',           icon: <IconPhoto size={16} /> },
-  { to: '/matchday',  label: 'Matchday Info',     icon: <IconMapPin size={16} /> },
-  { to: '/contact',   label: 'Contact',           icon: <IconMail size={16} /> },
+const DEFAULT_NAV: NavItem[] = [
+  { to: '/',          label: 'Home',               icon: 'fa-home' },
+  { to: '/about',     label: 'About Us',           icon: 'fa-info-circle' },
+  { to: '/teams',     label: 'Teams',              icon: 'fa-users' },
+  { to: '/fixtures',  label: 'Fixtures & Results', icon: 'fa-calendar' },
+  { to: '/register',  label: 'Register & Pay',     icon: 'fa-credit-card' },
+  { to: '/committee', label: 'Committee & Staff',  icon: 'fa-id-card' },
+  { to: '/news',      label: 'Club News',          icon: 'fa-newspaper' },
+  { to: '/gallery',   label: 'Gallery',            icon: 'fa-images' },
+  { to: '/matchday',  label: 'Matchday Info',      icon: 'fa-map-marker-alt' },
+  { to: '/contact',   label: 'Contact',            icon: 'fa-envelope' },
 ];
 
 function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
@@ -65,6 +63,8 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
   const { pathname } = useLocation();
   const { activeSection, setActiveSection } = useSection();
 
+  const navItems = club.nav ?? DEFAULT_NAV;
+
   const visibleFeeds = sidebarFeeds?.filter(
     f => activeSection === 'all' || f.sectionId === activeSection
   );
@@ -102,13 +102,13 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
         Menu
       </Text>
 
-      {NAV_ITEMS.map(({ to, label, icon }) => (
+      {navItems.map(({ to, label, icon }) => (
         <NavLink
           key={to}
           component={Link}
           to={to}
           label={label}
-          leftSection={icon}
+          leftSection={tablerIcon(icon, 16)}
           active={to === '/' ? pathname === '/' : pathname.startsWith(to)}
           onClick={onNavClick}
           color="orange"

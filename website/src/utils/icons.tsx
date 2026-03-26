@@ -4,36 +4,46 @@ import {
   IconMapPin, IconCar, IconShirt, IconToolsKitchen2, IconLeaf,
   IconDog, IconUserPlus, IconUserCircle, IconBallFootball, IconCamera,
   IconAward, IconHeartHandshake, IconMail, IconInfoCircle, IconHelp,
+  IconHome, IconCalendar, IconCreditCard, IconId, IconNews, IconPhoto,
+  IconChartLine,
 } from '@tabler/icons-react';
 
-const SIZE = 18;
-
 /** Map FontAwesome class names (fa-xxx) to Tabler icons. */
-const ICON_MAP: Record<string, ReactNode> = {
-  'fa-star':           <IconStar size={SIZE} />,
-  'fa-users':          <IconUsers size={SIZE} />,
-  'fa-bullseye':       <IconTarget size={SIZE} />,
-  'fa-heart':          <IconHeart size={SIZE} />,
-  'fa-trophy':         <IconTrophy size={SIZE} />,
-  'fa-shield-alt':     <IconShield size={SIZE} />,
-  'fa-map-marker-alt': <IconMapPin size={SIZE} />,
-  'fa-car':            <IconCar size={SIZE} />,
-  'fa-shirt':          <IconShirt size={SIZE} />,
-  'fa-utensils':       <IconToolsKitchen2 size={SIZE} />,
-  'fa-leaf':           <IconLeaf size={SIZE} />,
-  'fa-paw':            <IconDog size={SIZE} />,
-  'fa-user-plus':      <IconUserPlus size={SIZE} />,
-  'fa-child':          <IconUserCircle size={SIZE} />,
-  'fa-venus':          <IconUserCircle size={SIZE} />,
-  'fa-female':         <IconUserCircle size={SIZE} />,
-  'fa-futbol':         <IconBallFootball size={SIZE} />,
-  'fa-camera':         <IconCamera size={SIZE} />,
-  'fa-award':          <IconAward size={SIZE} />,
-  'fa-handshake':      <IconHeartHandshake size={SIZE} />,
-  'fa-envelope':       <IconMail size={SIZE} />,
-  'fa-info-circle':    <IconInfoCircle size={SIZE} />,
-};
+function buildMap(size: number): Record<string, ReactNode> {
+  return {
+    'fa-star':           <IconStar size={size} />,
+    'fa-users':          <IconUsers size={size} />,
+    'fa-bullseye':       <IconTarget size={size} />,
+    'fa-heart':          <IconHeart size={size} />,
+    'fa-trophy':         <IconTrophy size={size} />,
+    'fa-shield-alt':     <IconShield size={size} />,
+    'fa-map-marker-alt': <IconMapPin size={size} />,
+    'fa-car':            <IconCar size={size} />,
+    'fa-shirt':          <IconShirt size={size} />,
+    'fa-utensils':       <IconToolsKitchen2 size={size} />,
+    'fa-leaf':           <IconLeaf size={size} />,
+    'fa-paw':            <IconDog size={size} />,
+    'fa-user-plus':      <IconUserPlus size={size} />,
+    'fa-child':          <IconUserCircle size={size} />,
+    'fa-venus':          <IconUserCircle size={size} />,
+    'fa-female':         <IconUserCircle size={size} />,
+    'fa-futbol':         <IconBallFootball size={size} />,
+    'fa-camera':         <IconCamera size={size} />,
+    'fa-award':          <IconAward size={size} />,
+    'fa-handshake':      <IconHeartHandshake size={size} />,
+    'fa-envelope':       <IconMail size={size} />,
+    'fa-info-circle':    <IconInfoCircle size={size} />,
+    'fa-chart-line':     <IconChartLine size={size} />,
+    // Navigation icons
+    'fa-home':           <IconHome size={size} />,
+    'fa-calendar':       <IconCalendar size={size} />,
+    'fa-credit-card':    <IconCreditCard size={size} />,
+    'fa-id-card':        <IconId size={size} />,
+    'fa-newspaper':      <IconNews size={size} />,
+    'fa-images':         <IconPhoto size={size} />,
+  };
+}
 
-export function tablerIcon(faClass: string): ReactNode {
-  return ICON_MAP[faClass] ?? <IconHelp size={SIZE} />;
+export function tablerIcon(faClass: string, size = 18): ReactNode {
+  return buildMap(size)[faClass] ?? <IconHelp size={size} />;
 }

@@ -16,14 +16,35 @@ export interface AboutItem {
   text: string;
 }
 
+export interface NavItem {
+  to: string;
+  label: string;
+  icon: string;
+}
+
+export interface MatchdayBadge {
+  label: string;
+  color: string;
+}
+
 export interface Club {
   name: string;
+  tagShort?: string;
   tagline: string;
   founded: number;
   email: string;
   address: ClubAddress;
   what3words: string;
   socials: ClubSocials;
+  badge?: string;
+  primaryColor?: string;
+  clubFeedSlug?: string;
+  teamSlugPrefix?: string;
+  homeBanner?: string;
+  groundImage?: string;
+  groundImageAlt?: string;
+  matchdayBadges?: MatchdayBadge[];
+  nav?: NavItem[];
   about: AboutItem[];
   history: string[];
 }
