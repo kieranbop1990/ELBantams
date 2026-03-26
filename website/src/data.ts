@@ -62,7 +62,7 @@ export async function loadAllData(): Promise<AppData> {
   // Load club config first so we can derive external feed URLs from it
   const club = await load<Club>('club.json');
 
-  const feedSlug = club.clubFeedSlug ?? 'east-leake';
+  const feedSlug = club.clubFeedSlug ?? '';
   const teamSlugPrefix = club.teamSlugPrefix ?? `${feedSlug}-`;
 
   const [teams, committee, registration, news, gallery, matchday, clubFeed, liveTeams] =
