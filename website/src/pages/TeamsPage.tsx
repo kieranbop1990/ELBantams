@@ -1,11 +1,11 @@
 import { Title, Text, SimpleGrid, Paper, Badge, Button, Group, Stack, Image, Center, Divider } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconCamera, IconCalendar } from '@tabler/icons-react';
-import type { TeamsData, LiveTeam } from '../types';
+import type { TeamsData, BantamsTeam } from '../types';
 
 interface Props {
   teams: TeamsData;
-  liveTeams: LiveTeam[];
+  bantamsTeams: BantamsTeam[];
 }
 
 // Extract age number from a section team name like "Under 7s" → "U7"
@@ -14,18 +14,18 @@ function ageTag(teamName: string): string | null {
   return m ? `U${m[1]}` : null;
 }
 
-// Find all live teams that match an age group tag
-function matchingTeams(liveTeams: LiveTeam[], tag: string): LiveTeam[] {
+// Find all bantams teams that match an age group tag
+function matchingTeams(bantamsTeams: BantamsTeam[], tag: string): BantamsTeam[] {
   const lower = tag.toLowerCase();
-  return liveTeams.filter((t) => t.slug.includes(`-${lower}`));
+  return bantamsTeams.filter((t) => t.slug.includes(`-${lower}`));
 }
 
-// Find the live team matching a direct slug
-function teamBySlug(liveTeams: LiveTeam[], slug: string): LiveTeam | null {
-  return liveTeams.find((t) => t.slug === slug) ?? null;
+// Find the bantams team matching a direct slug
+function teamBySlug(bantamsTeams: BantamsTeam[], slug: string): BantamsTeam | null {
+  return bantamsTeams.find((t) => t.slug === slug) ?? null;
 }
 
-function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['teams'][0]; liveTeams: LiveTeam[] }) {
+function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['teams'][0]; liveTeams: BantamsTeam[] }) {
   return (
     <Paper p="md" radius="md" withBorder>
       {team.photo ? (
@@ -92,7 +92,7 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
   );
 }
 
-export function TeamsPage({ teams, liveTeams }: Props) {
+export function TeamsPage({ teams, bantamsTeams }: Props) {
   return (
     <Stack gap="xl">
       <Title order={2}>Our Teams</Title>
@@ -106,16 +106,19 @@ export function TeamsPage({ teams, liveTeams }: Props) {
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
             {section.teams.map((team, ti) => {
-              let matched: LiveTeam[] = [];
+              let liveTeams: BantamsTeam[] = [];
               if (team?.slug) {
-                const match = teamBySlug(liveTeams, team.slug);
-                matched = match && [match] || [];
+                const match = teamBySlug(bantamsTeams, team.slug);
+                liveTeams = match && [match] || [];
               } else {
                 const tag = ageTag(team.name);
-                matched = tag && matchingTeams(liveTeams, tag) || [];
+                liveTeams = tag && matchingTeams(bantamsTeams, tag) || [];
               }
 
-              return <TeamCard key={ti} team={team} liveTeams={matched} />;
+              console.log(team)
+              console.log(`Live teams: ${liveTeams}`)
+
+              return <TeamCard key={ti} team={team} liveTeams={liveTeams} />;
             })}
           </SimpleGrid>
         </div>
