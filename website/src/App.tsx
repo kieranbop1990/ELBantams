@@ -48,8 +48,7 @@ export default function App() {
         <AppShell.Navbar>
           <SiteSidebar
             club={data.club}
-            fixture={data.fixtures.next}
-            bantamsFeed={data.bantamsFeed}
+            sidebarFeeds={data.sidebarFeeds}
             onNavClick={close}
           />
         </AppShell.Navbar>
@@ -58,9 +57,9 @@ export default function App() {
           <Routes>
             <Route path="/" element={<HomePage club={data.club} />} />
             <Route path="/about" element={<AboutPage club={data.club} />} />
-            <Route path="/teams" element={<TeamsPage teams={data.teams} bantamsTeams={data.bantamsTeams} />} />
-            <Route path="/teams/:teamSlug" element={<TeamPage bantamsTeams={data.bantamsTeams} />} />
-            <Route path="/fixtures" element={<FixturesResultsPage feed={data.bantamsFeed} />} />
+            <Route path="/teams" element={<TeamsPage teams={data.teams} liveTeams={data.liveTeams} />} />
+            <Route path="/teams/:teamSlug" element={<TeamPage liveTeams={data.liveTeams} />} />
+            <Route path="/fixtures" element={<FixturesResultsPage feed={data.clubFeed} />} />
             <Route path="/register" element={<RegisterPage items={data.registration} />} />
             <Route path="/committee" element={<CommitteePage committee={data.committee} teams={data.teams} />} />
             <Route path="/news" element={<NewsPage items={data.news} />} />

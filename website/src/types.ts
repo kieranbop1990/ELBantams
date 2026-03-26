@@ -37,7 +37,8 @@ export interface Team {
   contact: string;
   managerLabel?: string;
   coachLabel?: string;
-  slug?: string; // direct feed slug for linking to fixtures/results
+  slug?: string;    // live feed slug for linking to fixtures/results
+  sidebar?: boolean; // show next fixture in sidebar
 }
 
 export interface TeamSection {
@@ -88,20 +89,7 @@ export interface MatchdayItem {
   text: string;
 }
 
-export interface Fixture {
-  competition: string;
-  homeTeam: string;
-  awayTeam: string;
-  date: string;
-  kickoff: string;
-  venue: string;
-}
-
-export interface FixturesData {
-  next: Fixture;
-}
-
-export interface BantamsFixture {
+export interface LiveFixture {
   id: string;
   date: string;
   time: string;
@@ -115,32 +103,32 @@ export interface BantamsFixture {
   opponent: string;
 }
 
-export interface BantamsResult extends BantamsFixture {
+export interface LiveResult extends LiveFixture {
   home_score: number | null;
   away_score: number | null;
   goals_for: number | null;
   goals_against: number | null;
 }
 
-export interface BantamsFeed {
+export interface ClubFeed {
   club: string;
   generated: string;
-  fixtures: BantamsFixture[];
-  results: BantamsResult[];
+  fixtures: LiveFixture[];
+  results: LiveResult[];
 }
 
-export interface BantamsTeam {
+export interface LiveTeam {
   name: string;
   slug: string;
-  league: string; // league slug, e.g. "yel-east-midlands-sunday-25-26"
+  league: string;
 }
 
-export interface BantamsTeamFeed {
+export interface TeamFeed {
   team: string;
   league: string;
   generated: string;
-  fixtures: Omit<BantamsFixture, 'team' | 'home_away' | 'opponent'>[];
-  results: Omit<BantamsResult, 'team' | 'home_away' | 'opponent' | 'goals_for' | 'goals_against'>[];
+  fixtures: Omit<LiveFixture, 'team' | 'home_away' | 'opponent'>[];
+  results: Omit<LiveResult, 'team' | 'home_away' | 'opponent' | 'goals_for' | 'goals_against'>[];
 }
 
 export interface AppData {
@@ -149,9 +137,9 @@ export interface AppData {
   committee: CommitteeData;
   registration: RegistrationItem[];
   news: NewsItem[];
-  fixtures: FixturesData;
   gallery: GalleryItem[];
   matchday: MatchdayItem[];
-  bantamsFeed: BantamsFeed | null;
-  bantamsTeams: BantamsTeam[];
+  clubFeed: ClubFeed | null;
+  liveTeams: LiveTeam[];
+  sidebarFeeds: { feed: TeamFeed; label: string }[];
 }

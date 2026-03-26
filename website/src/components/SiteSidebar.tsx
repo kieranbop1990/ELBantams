@@ -4,7 +4,7 @@ import {
   IconHome, IconInfoCircle, IconUsers, IconCreditCard, IconId,
   IconNews, IconPhoto, IconMapPin, IconMail, IconCalendar,
 } from '@tabler/icons-react';
-import type { Club, Fixture, BantamsFeed } from '../types';
+import type { Club, TeamFeed } from '../types';
 
 const NAV_ITEMS = [
   { to: '/',          label: 'Home',              icon: <IconHome size={16} /> },
@@ -19,14 +19,47 @@ const NAV_ITEMS = [
   { to: '/contact',   label: 'Contact',           icon: <IconMail size={16} /> },
 ];
 
+function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const upcoming = feed.fixtures
+    .filter((f) => f.date >= today)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
+  const next = upcoming[0];
+  if (!next) return null;
+  const d = new Date(next.date + 'T00:00:00');
+  const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+  return (
+    <>
+      <Divider my="sm" mx="md" />
+      <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
+        {label}
+      </Text>
+      <Paper mx="md" p="sm" withBorder radius="md">
+        <Badge color="orange" variant="light" size="xs" mb="xs">{next.division}</Badge>
+        <Text fw={700} size="sm" ta="center" lh={1.3}>
+          {next.home_team}
+        </Text>
+        <Text size="xs" c="dimmed" ta="center">vs</Text>
+        <Text fw={700} size="sm" ta="center" lh={1.3} mb="xs">
+          {next.away_team}
+        </Text>
+        <Group gap="xs" justify="center" wrap="nowrap">
+          <IconCalendar size={12} />
+          <Text size="xs" c="dimmed">{dateStr} · {next.time}</Text>
+        </Group>
+        <Text size="xs" c="dimmed" ta="center">{next.venue}</Text>
+      </Paper>
+    </>
+  );
+}
+
 interface Props {
   club: Club;
-  fixture?: Fixture;
-  bantamsFeed?: BantamsFeed | null;
+  sidebarFeeds?: { feed: TeamFeed; label: string }[];
   onNavClick: () => void;
 }
 
-export function SiteSidebar({ club, fixture, bantamsFeed, onNavClick }: Props) {
+export function SiteSidebar({ club, sidebarFeeds, onNavClick }: Props) {
   const { pathname } = useLocation();
 
   return (
@@ -48,63 +81,9 @@ export function SiteSidebar({ club, fixture, bantamsFeed, onNavClick }: Props) {
         />
       ))}
 
-      {fixture && (
-        <>
-          <Divider my="sm" mx="md" />
-          <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
-            Next Fixture
-          </Text>
-          <Paper mx="md" p="sm" withBorder radius="md">
-            <Badge color="orange" variant="light" size="xs" mb="xs">{fixture.competition}</Badge>
-            <Text fw={700} size="sm" ta="center" lh={1.3}>
-              {fixture.homeTeam}
-            </Text>
-            <Text size="xs" c="dimmed" ta="center">vs</Text>
-            <Text fw={700} size="sm" ta="center" lh={1.3} mb="xs">
-              {fixture.awayTeam}
-            </Text>
-            <Group gap="xs" justify="center" wrap="nowrap">
-              <IconCalendar size={12} />
-              <Text size="xs" c="dimmed">{fixture.date} · {fixture.kickoff}</Text>
-            </Group>
-            <Text size="xs" c="dimmed" ta="center">{fixture.venue}</Text>
-          </Paper>
-        </>
-      )}
-
-      {bantamsFeed && bantamsFeed.fixtures.length > 0 && (() => {
-        const today = new Date().toISOString().slice(0, 10);
-        const upcoming = bantamsFeed.fixtures
-          .filter((f) => f.date >= today)
-          .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-        const next = upcoming[0];
-        if (!next) return null;
-        const d = new Date(next.date + 'T00:00:00');
-        const dateStr = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
-        return (
-          <>
-            <Divider my="sm" mx="md" />
-            <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
-              Next Bantams Fixture
-            </Text>
-            <Paper mx="md" p="sm" withBorder radius="md">
-              <Badge color="orange" variant="light" size="xs" mb="xs">{next.division}</Badge>
-              <Text fw={700} size="sm" ta="center" lh={1.3}>
-                {next.home_team}
-              </Text>
-              <Text size="xs" c="dimmed" ta="center">vs</Text>
-              <Text fw={700} size="sm" ta="center" lh={1.3} mb="xs">
-                {next.away_team}
-              </Text>
-              <Group gap="xs" justify="center" wrap="nowrap">
-                <IconCalendar size={12} />
-                <Text size="xs" c="dimmed">{dateStr} · {next.time}</Text>
-              </Group>
-              <Text size="xs" c="dimmed" ta="center">{next.venue}</Text>
-            </Paper>
-          </>
-        );
-      })()}
+      {sidebarFeeds?.map(({ feed, label }) => (
+        <NextTeamFixture key={label} feed={feed} label={`Next ${label} Fixture`} />
+      ))}
 
       <Divider my="sm" mx="md" />
       <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
