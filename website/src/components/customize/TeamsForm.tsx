@@ -1,14 +1,22 @@
-import { TextInput, Textarea, Select, Stack, Group, Title, Paper, Button, Text, Switch, Divider, Accordion } from '@mantine/core';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { TextInput, Textarea, Select, Stack, Group, Title, Paper, Button, Text, Switch, Divider, Accordion, Alert } from '@mantine/core';
+import { IconPlus, IconTrash, IconInfoCircle } from '@tabler/icons-react';
 import type { TeamsData, TeamSection, Team } from '../../types';
+import type { FeedTeamEntry } from '../../data';
 import { ICON_OPTIONS } from './iconOptions';
 
 interface Props {
   teams: TeamsData;
   onChange: (teams: TeamsData) => void;
+  feedTeams?: FeedTeamEntry[];
+  teamSlugPrefix?: string;
 }
 
-function TeamEditor({ team, onChange, onRemove }: { team: Team; onChange: (t: Team) => void; onRemove: () => void }) {
+function TeamEditor({ team, onChange, onRemove, matchingFeedTeams }: {
+  team: Team;
+  onChange: (t: Team) => void;
+  onRemove: () => void;
+  matchingFeedTeams?: { value: string; label: string }[];
+}) {
   const update = <K extends keyof Team>(key: K, value: Team[K]) =>
     onChange({ ...team, [key]: value });
 
@@ -30,7 +38,20 @@ function TeamEditor({ team, onChange, onRemove }: { team: Team; onChange: (t: Te
         </Group>
         <Group grow>
           <TextInput label="Contact" value={team.contact} onChange={e => update('contact', e.target.value)} />
-          <TextInput label="Feed Slug" description="For live fixtures" value={team.slug ?? ''} onChange={e => update('slug', e.target.value || undefined)} />
+          {matchingFeedTeams && matchingFeedTeams.length > 0 ? (
+            <Select
+              label="Feed Team"
+              description="Select from fulltimeCalendar — do not create, just link"
+              data={matchingFeedTeams}
+              value={team.slug ?? ''}
+              onChange={v => update('slug', v || undefined)}
+              searchable
+              clearable
+              nothingFoundMessage="No matching teams"
+            />
+          ) : (
+            <TextInput label="Feed Slug" description="For live fixtures" value={team.slug ?? ''} onChange={e => update('slug', e.target.value || undefined)} />
+          )}
         </Group>
         <Switch
           label="Show next fixture in sidebar"
@@ -42,7 +63,12 @@ function TeamEditor({ team, onChange, onRemove }: { team: Team; onChange: (t: Te
   );
 }
 
-function SectionEditor({ section, onChange, onRemove }: { section: TeamSection; onChange: (s: TeamSection) => void; onRemove: () => void }) {
+function SectionEditor({ section, onChange, onRemove, matchingFeedTeams }: {
+  section: TeamSection;
+  onChange: (s: TeamSection) => void;
+  onRemove: () => void;
+  matchingFeedTeams?: { value: string; label: string }[];
+}) {
   const update = <K extends keyof TeamSection>(key: K, value: TeamSection[K]) =>
     onChange({ ...section, [key]: value });
 
@@ -81,7 +107,7 @@ function SectionEditor({ section, onChange, onRemove }: { section: TeamSection; 
           <Accordion.Item key={i} value={String(i)}>
             <Accordion.Control>{team.name || `Team ${i + 1}`}</Accordion.Control>
             <Accordion.Panel>
-              <TeamEditor team={team} onChange={t => updateTeam(i, t)} onRemove={() => removeTeam(i)} />
+              <TeamEditor team={team} onChange={t => updateTeam(i, t)} onRemove={() => removeTeam(i)} matchingFeedTeams={matchingFeedTeams} />
             </Accordion.Panel>
           </Accordion.Item>
         ))}
@@ -91,7 +117,7 @@ function SectionEditor({ section, onChange, onRemove }: { section: TeamSection; 
   );
 }
 
-export function TeamsForm({ teams, onChange }: Props) {
+export function TeamsForm({ teams, onChange, feedTeams, teamSlugPrefix }: Props) {
   const updateSection = (index: number, section: TeamSection) => {
     const sections = [...teams.sections];
     sections[index] = section;
@@ -104,11 +130,24 @@ export function TeamsForm({ teams, onChange }: Props) {
   const removeSection = (i: number) =>
     onChange({ sections: teams.sections.filter((_, idx) => idx !== i) });
 
+  // Build dropdown options from feed teams matching the prefix
+  const matchingFeedTeams = feedTeams && teamSlugPrefix
+    ? feedTeams
+        .filter(t => t.slug.startsWith(teamSlugPrefix))
+        .map(t => ({ value: t.slug, label: `${t.name}  (${t.slug})` }))
+        .sort((a, b) => a.label.localeCompare(b.label))
+    : undefined;
+
   return (
     <Stack gap="lg">
       <Title order={4}>Teams & Sections</Title>
+      {matchingFeedTeams && matchingFeedTeams.length > 0 && (
+        <Alert icon={<IconInfoCircle size={16} />} variant="light">
+          <Text size="xs">{matchingFeedTeams.length} teams found in fulltimeCalendar matching prefix "{teamSlugPrefix}". Use the "Feed Team" dropdown in each team to link them.</Text>
+        </Alert>
+      )}
       {teams.sections.map((section, i) => (
-        <SectionEditor key={i} section={section} onChange={s => updateSection(i, s)} onRemove={() => removeSection(i)} />
+        <SectionEditor key={i} section={section} onChange={s => updateSection(i, s)} onRemove={() => removeSection(i)} matchingFeedTeams={matchingFeedTeams} />
       ))}
       <Button variant="light" leftSection={<IconPlus size={14} />} onClick={addSection}>Add Section</Button>
     </Stack>

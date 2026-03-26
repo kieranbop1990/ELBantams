@@ -5,7 +5,8 @@ import {
   IconMapPin, IconCreditCard, IconPhoto, IconRefresh,
 } from '@tabler/icons-react';
 import type { AppData } from '../types';
-import { loadFeeds } from '../data';
+import { loadFeeds, loadClubSlugs, loadAllFeedTeams } from '../data';
+import type { FeedTeamEntry } from '../data';
 import { ClubForm } from '../components/customize/ClubForm';
 import { TeamsForm } from '../components/customize/TeamsForm';
 import { CommitteeForm } from '../components/customize/CommitteeForm';
@@ -33,12 +34,17 @@ export function CustomizePage({
   previewActive,
 }: Props) {
   const [loadingFeeds, setLoadingFeeds] = useState(false);
+  const [clubSlugs, setClubSlugs] = useState<string[]>([]);
+  const [feedTeams, setFeedTeams] = useState<FeedTeamEntry[]>([]);
 
   // Initialise editing data on first mount if not already set
   useEffect(() => {
     if (!editingData) {
       onEditingChange(JSON.parse(JSON.stringify(originalData)));
     }
+    // Load feed index data for dropdowns
+    loadClubSlugs().then(setClubSlugs);
+    loadAllFeedTeams().then(setFeedTeams);
   }, []);
 
   // While editingData is being initialised, show nothing yet
@@ -120,11 +126,11 @@ export function CustomizePage({
         </Tabs.List>
 
         <Tabs.Panel value="club" pt="md">
-          <ClubForm club={localData.club} onChange={club => setLocalData(d => ({ ...d, club }))} />
+          <ClubForm club={localData.club} onChange={club => setLocalData(d => ({ ...d, club }))} clubSlugs={clubSlugs} />
         </Tabs.Panel>
 
         <Tabs.Panel value="teams" pt="md">
-          <TeamsForm teams={localData.teams} onChange={teams => setLocalData(d => ({ ...d, teams }))} />
+          <TeamsForm teams={localData.teams} onChange={teams => setLocalData(d => ({ ...d, teams }))} feedTeams={feedTeams} teamSlugPrefix={localData.club.teamSlugPrefix} />
         </Tabs.Panel>
 
         <Tabs.Panel value="committee" pt="md">

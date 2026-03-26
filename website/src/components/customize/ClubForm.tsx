@@ -1,14 +1,15 @@
-import { TextInput, Textarea, Select, Stack, Group, Title, Paper, Button, Text, ColorSwatch, Divider } from '@mantine/core';
-import { IconPlus, IconTrash } from '@tabler/icons-react';
+import { TextInput, Textarea, Select, Stack, Group, Title, Paper, Button, Text, ColorSwatch, Divider, Alert } from '@mantine/core';
+import { IconPlus, IconTrash, IconInfoCircle } from '@tabler/icons-react';
 import type { Club, AboutItem } from '../../types';
 import { COLOR_OPTIONS, ICON_OPTIONS } from './iconOptions';
 
 interface Props {
   club: Club;
   onChange: (club: Club) => void;
+  clubSlugs?: string[];
 }
 
-export function ClubForm({ club, onChange }: Props) {
+export function ClubForm({ club, onChange, clubSlugs }: Props) {
   const update = <K extends keyof Club>(key: K, value: Club[K]) =>
     onChange({ ...club, [key]: value });
 
@@ -90,9 +91,29 @@ export function ClubForm({ club, onChange }: Props) {
 
       <Divider label="Live Feeds (fulltimeCalendar)" />
 
+      <Alert icon={<IconInfoCircle size={16} />} variant="light" mb="xs">
+        <Text size="xs">Select your club from the dropdown to connect live fixtures. If your club isn't listed, you can type a slug manually. The team prefix filters which teams appear in your feeds.</Text>
+      </Alert>
+
       <Group grow>
-        <TextInput label="Club Feed Slug" description='e.g. "my-club" — used to fetch fixtures from fulltimeCalendar' value={club.clubFeedSlug ?? ''} onChange={e => update('clubFeedSlug', e.target.value)} />
-        <TextInput label="Team Slug Prefix" description='e.g. "my-club-" — filters teams from the feed index' value={club.teamSlugPrefix ?? ''} onChange={e => update('teamSlugPrefix', e.target.value)} />
+        {clubSlugs && clubSlugs.length > 0 ? (
+          <Select
+            label="Club Feed"
+            description="Select your club from fulltimeCalendar"
+            data={clubSlugs.map(s => ({ value: s, label: s }))}
+            value={club.clubFeedSlug ?? ''}
+            onChange={v => {
+              const slug = v ?? '';
+              onChange({ ...club, clubFeedSlug: slug, teamSlugPrefix: slug ? `${slug}-` : '' });
+            }}
+            searchable
+            clearable
+            nothingFoundMessage="No clubs found — type to search"
+          />
+        ) : (
+          <TextInput label="Club Feed Slug" description='e.g. "my-club" — loading clubs list...' value={club.clubFeedSlug ?? ''} onChange={e => update('clubFeedSlug', e.target.value)} />
+        )}
+        <TextInput label="Team Slug Prefix" description="Auto-set when you pick a club — edit if needed" value={club.teamSlugPrefix ?? ''} onChange={e => update('teamSlugPrefix', e.target.value)} />
       </Group>
 
       <Divider label="Home Banner" />

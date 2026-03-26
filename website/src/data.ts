@@ -4,6 +4,46 @@ const BASE = 'data/';
 const FEEDS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/feeds/';
 const CALENDARS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/calendars/';
 const INDEX_URL = `${FEEDS_BASE}index.json`;
+const CLUBS_API_URL = 'https://api.github.com/repos/adamsuk/fulltimeCalendar/contents/feeds/clubs';
+
+export interface FeedTeamEntry {
+  name: string;
+  slug: string;
+  league: string;
+}
+
+/** Fetch the list of available club feed slugs from the clubs directory. */
+export async function loadClubSlugs(): Promise<string[]> {
+  try {
+    const res = await fetch(CLUBS_API_URL);
+    if (!res.ok) return [];
+    const files = await res.json() as { name: string }[];
+    return files
+      .filter(f => f.name.endsWith('.json'))
+      .map(f => f.name.replace('.json', ''))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+/** Fetch the full feed index — every team across all leagues. */
+export async function loadAllFeedTeams(): Promise<FeedTeamEntry[]> {
+  try {
+    const res = await fetch(INDEX_URL);
+    if (!res.ok) return [];
+    const data = await res.json() as { leagues: { slug: string; teams: { name: string; slug: string }[] }[] };
+    const teams: FeedTeamEntry[] = [];
+    for (const league of data.leagues) {
+      for (const team of league.teams) {
+        teams.push({ name: team.name, slug: team.slug, league: league.slug });
+      }
+    }
+    return teams;
+  } catch {
+    return [];
+  }
+}
 
 export function teamFeedUrl(league: string, slug: string): string {
   return `${FEEDS_BASE}${league}/teams/${slug}.json`;
