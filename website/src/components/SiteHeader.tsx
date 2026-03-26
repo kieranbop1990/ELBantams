@@ -1,4 +1,4 @@
-import { Burger, Group, Text, ActionIcon, Badge } from '@mantine/core';
+import { Burger, Group, Text, ActionIcon, Badge, Box } from '@mantine/core';
 import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import type { Club, TeamSection } from '../types';
@@ -24,8 +24,8 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
     : sections.filter(s => s.id === activeSection && s.logo);
 
   return (
-    <Group h="100%" px="md" justify="space-between">
-      <Group>
+    <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+      <Group wrap="nowrap">
         <Burger opened={navOpen} onClick={onNavToggle} hiddenFrom="md" size="sm" />
         <Text
           component={Link}
@@ -33,25 +33,27 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
           fw={700}
           size="lg"
           c="orange.6"
-          style={{ textDecoration: 'none' }}
+          style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
         >
           {clubShort} <Text component="span" fw={400} c="dimmed">FC</Text>
         </Text>
       </Group>
 
-      <Group gap="sm">
+      <Group gap="sm" wrap="nowrap">
         {activeData && (
-          <Badge
-            color="orange"
-            variant="filled"
-            size="md"
-            leftSection={tablerIcon(activeData.icon)}
-            style={{ cursor: 'pointer' }}
-            onClick={() => setActiveSection('all')}
-            title="Click to show all sections"
-          >
-            {activeData.name} {activeData.subtitle}
-          </Badge>
+          <Box visibleFrom="md">
+            <Badge
+              color="orange"
+              variant="filled"
+              size="md"
+              leftSection={tablerIcon(activeData.icon)}
+              style={{ cursor: 'pointer' }}
+              onClick={() => setActiveSection('all')}
+              title="Click to show all sections"
+            >
+              {activeData.name} {activeData.subtitle}
+            </Badge>
+          </Box>
         )}
 
         {club.socials.facebook && club.socials.facebook !== '#' && (
@@ -94,14 +96,15 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
           </ActionIcon>
         )}
 
-        <Group gap={4}>
+        <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
           {logosToShow.map(s => (
             <img
               key={s.id}
               src={s.logo}
               alt={`${s.name} logo`}
               height={44}
-              style={{ objectFit: 'contain', display: 'block' }}
+              width={44}
+              style={{ objectFit: 'contain', display: 'block', flexShrink: 0 }}
               onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
             />
           ))}
