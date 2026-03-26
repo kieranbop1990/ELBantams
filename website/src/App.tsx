@@ -23,21 +23,30 @@ import { CustomizePage } from './pages/CustomizePage';
 
 export default function App() {
   const [fetchedData, setFetchedData] = useState<AppData | null>(null);
-  const [customData, setCustomData] = useState<AppData | null>(null);
+  // editingData holds the in-progress form state — survives route changes
+  const [editingData, setEditingData] = useState<AppData | null>(null);
+  // previewData is what the rest of the site renders when preview is active
+  const [previewData, setPreviewData] = useState<AppData | null>(null);
   const [opened, { toggle, close }] = useDisclosure();
 
   useEffect(() => {
     loadAllData().then(setFetchedData);
   }, []);
 
-  const data = customData ?? fetchedData;
+  const data = previewData ?? fetchedData;
 
   useEffect(() => {
     if (data) document.title = data.club.name;
   }, [data]);
 
-  const handleCustomUpdate = useCallback((updated: AppData) => {
-    setCustomData(updated);
+  const handleApplyPreview = useCallback((updated: AppData) => {
+    setPreviewData(updated);
+    setEditingData(updated);
+  }, []);
+
+  const handleResetPreview = useCallback(() => {
+    setPreviewData(null);
+    setEditingData(null);
   }, []);
 
   if (!data) {
@@ -85,7 +94,16 @@ export default function App() {
             <Route path="/gallery" element={<GalleryPage items={data.gallery} />} />
             <Route path="/matchday" element={<MatchdayPage items={data.matchday} club={data.club} />} />
             <Route path="/contact" element={<ContactPage club={data.club} />} />
-            <Route path="/customize" element={<CustomizePage data={fetchedData!} onUpdate={handleCustomUpdate} />} />
+            <Route path="/customize" element={
+              <CustomizePage
+                originalData={fetchedData!}
+                editingData={editingData}
+                onEditingChange={setEditingData}
+                onApplyPreview={handleApplyPreview}
+                onResetPreview={handleResetPreview}
+                previewActive={previewData !== null}
+              />
+            } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell.Main>
