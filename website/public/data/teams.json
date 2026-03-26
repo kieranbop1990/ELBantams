@@ -5,7 +5,7 @@
       "name": "Robins",
       "subtitle": "Men's Teams",
       "icon": "fa-shield-alt",
-      "logo": "images/robins-logo.png",
+      "logo": "images/robins.jpg",
       "teams": [
         {
           "name": "First Team",
@@ -33,7 +33,7 @@
       "name": "Ladies",
       "subtitle": "Women's Team",
       "icon": "fa-heart",
-      "logo": "images/ladies-logo.png",
+      "logo": "images/ladies.jpg",
       "teams": [
         {
           "name": "Ladies",
@@ -52,7 +52,7 @@
       "name": "Bantams",
       "subtitle": "Junior Teams",
       "icon": "fa-star",
-      "logo": "images/bantams-logo.png",
+      "logo": "images/bantams.jpeg",
       "teams": [
         {
           "name": "Under 6s",
