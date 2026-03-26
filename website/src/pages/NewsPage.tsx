@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Title, Text, SimpleGrid, Paper, Button, Stack, Collapse, Divider } from '@mantine/core';
 import { IconChevronDown, IconChevronUp } from '@tabler/icons-react';
 import type { NewsItem } from '../types';
+import { useSection } from '../context/SectionContext';
 
 interface Props { items: NewsItem[] }
 
@@ -58,11 +59,19 @@ function NewsCard({ item }: { item: NewsItem }) {
 }
 
 export function NewsPage({ items }: Props) {
+  const { activeSection } = useSection();
+  const visibleItems = items.filter(item =>
+    activeSection === 'all' ||
+    !item.sections ||
+    item.sections.length === 0 ||
+    item.sections.includes(activeSection)
+  );
+
   return (
     <Stack gap="xl">
       <Title order={2}>Club News</Title>
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-        {items.map((item, i) => (
+        {visibleItems.map((item, i) => (
           <NewsCard key={i} item={item} />
         ))}
       </SimpleGrid>

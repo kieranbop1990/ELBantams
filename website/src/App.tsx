@@ -6,6 +6,7 @@ import { loadAllData } from './data';
 import type { AppData } from './types';
 import { SiteHeader } from './components/SiteHeader';
 import { SiteSidebar } from './components/SiteSidebar';
+import { SectionProvider } from './context/SectionContext';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -35,6 +36,7 @@ export default function App() {
   }
 
   return (
+    <SectionProvider>
     <HashRouter>
       <AppShell
         header={{ height: 60 }}
@@ -71,5 +73,6 @@ export default function App() {
         </AppShell.Main>
       </AppShell>
     </HashRouter>
+    </SectionProvider>
   );
 }

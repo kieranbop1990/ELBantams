@@ -42,6 +42,7 @@ export interface Team {
 }
 
 export interface TeamSection {
+  id: string;
   name: string;
   subtitle: string;
   icon: string;
@@ -76,6 +77,7 @@ export interface NewsItem {
   body?: string;
   link: string;
   linkText: string;
+  sections?: string[]; // if absent or empty, shown for all section filters
 }
 
 export interface GalleryItem {
@@ -141,5 +143,5 @@ export interface AppData {
   matchday: MatchdayItem[];
   clubFeed: ClubFeed | null;
   liveTeams: LiveTeam[];
-  sidebarFeeds: { feed: TeamFeed; label: string }[];
+  sidebarFeeds: { feed: TeamFeed; label: string; sectionId: string }[];
 }

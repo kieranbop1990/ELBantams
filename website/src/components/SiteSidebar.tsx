@@ -1,10 +1,11 @@
-import { NavLink, Stack, Text, Divider, Badge, Group, Paper } from '@mantine/core';
+import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button } from '@mantine/core';
 import { useLocation, Link } from 'react-router-dom';
 import {
   IconHome, IconInfoCircle, IconUsers, IconCreditCard, IconId,
   IconNews, IconPhoto, IconMapPin, IconMail, IconCalendar,
 } from '@tabler/icons-react';
 import type { Club, TeamFeed } from '../types';
+import { useSection, SECTION_OPTIONS } from '../context/SectionContext';
 
 const NAV_ITEMS = [
   { to: '/',          label: 'Home',              icon: <IconHome size={16} /> },
@@ -55,16 +56,40 @@ function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
 
 interface Props {
   club: Club;
-  sidebarFeeds?: { feed: TeamFeed; label: string }[];
+  sidebarFeeds?: { feed: TeamFeed; label: string; sectionId: string }[];
   onNavClick: () => void;
 }
 
 export function SiteSidebar({ club, sidebarFeeds, onNavClick }: Props) {
   const { pathname } = useLocation();
+  const { activeSection, setActiveSection } = useSection();
+
+  const visibleFeeds = sidebarFeeds?.filter(
+    f => activeSection === 'all' || f.sectionId === activeSection
+  );
 
   return (
     <Stack gap={0} h="100%" style={{ overflowY: 'auto' }}>
       <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pt="md" pb="xs">
+        View
+      </Text>
+      <Group gap={4} px="md" pb="sm" wrap="wrap">
+        {SECTION_OPTIONS.map(opt => (
+          <Button
+            key={opt.id}
+            size="compact-xs"
+            variant={activeSection === opt.id ? 'filled' : 'outline'}
+            color="orange"
+            onClick={() => setActiveSection(opt.id)}
+          >
+            {opt.shortLabel}
+          </Button>
+        ))}
+      </Group>
+
+      <Divider mx="md" mb="xs" />
+
+      <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
         Menu
       </Text>
 
@@ -81,7 +106,7 @@ export function SiteSidebar({ club, sidebarFeeds, onNavClick }: Props) {
         />
       ))}
 
-      {sidebarFeeds?.map(({ feed, label }) => (
+      {visibleFeeds?.map(({ feed, label }) => (
         <NextTeamFixture key={label} feed={feed} label={`Next ${label} Fixture`} />
       ))}
 

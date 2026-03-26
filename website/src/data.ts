@@ -74,19 +74,17 @@ export async function loadAllData(): Promise<AppData> {
     ]);
 
   const sidebarConfigs = (teams as TeamsData).sections
-    .flatMap(s => s.teams)
-    .filter(t => t.sidebar && t.slug)
-    .map(t => ({ slug: t.slug!, label: t.name }));
+    .flatMap(s => s.teams.filter(t => t.sidebar && t.slug).map(t => ({ slug: t.slug!, label: t.name, sectionId: s.id })));
 
   const resolvedFeeds = await Promise.all(
-    sidebarConfigs.map(async ({ slug, label }) => {
+    sidebarConfigs.map(async ({ slug, label, sectionId }) => {
       const team = (liveTeams as LiveTeam[]).find(t => t.slug === slug);
       if (!team) return null;
       const feed = await loadTeamFeed(team.league, team.slug);
-      return feed ? { feed, label } : null;
+      return feed ? { feed, label, sectionId } : null;
     })
   );
-  const sidebarFeeds = resolvedFeeds.filter((f): f is { feed: TeamFeed; label: string } => f !== null);
+  const sidebarFeeds = resolvedFeeds.filter((f): f is { feed: TeamFeed; label: string; sectionId: string } => f !== null);
 
   return { club, teams, committee, registration, news, gallery, matchday, clubFeed, liveTeams, sidebarFeeds } as AppData;
 }

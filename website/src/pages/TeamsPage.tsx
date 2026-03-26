@@ -2,6 +2,7 @@ import { Title, Text, SimpleGrid, Paper, Badge, Button, Group, Stack, Image, Cen
 import { Link } from 'react-router-dom';
 import { IconCamera, IconCalendar } from '@tabler/icons-react';
 import type { TeamsData, LiveTeam } from '../types';
+import { useSection } from '../context/SectionContext';
 
 interface Props {
   teams: TeamsData;
@@ -93,11 +94,16 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
 }
 
 export function TeamsPage({ teams, liveTeams }: Props) {
+  const { activeSection } = useSection();
+  const visibleSections = teams.sections.filter(
+    s => activeSection === 'all' || s.id === activeSection
+  );
+
   return (
     <Stack gap="xl">
       <Title order={2}>Our Teams</Title>
 
-      {teams.sections.map((section, si) => (
+      {visibleSections.map((section, si) => (
         <div key={si}>
           <Group mb="md" align="center">
             <Text fw={700} size="lg">{section.name}</Text>

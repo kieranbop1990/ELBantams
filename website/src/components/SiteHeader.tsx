@@ -1,7 +1,8 @@
-import { Burger, Group, Text, ActionIcon, useMantineTheme } from '@mantine/core';
-import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter } from '@tabler/icons-react';
+import { Burger, Group, Text, ActionIcon, Badge, useMantineTheme } from '@mantine/core';
+import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter, IconShield, IconHeart, IconStar } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import type { Club } from '../types';
+import { useSection } from '../context/SectionContext';
 
 interface Props {
   club: Club;
@@ -9,9 +10,17 @@ interface Props {
   onNavToggle: () => void;
 }
 
+const SECTION_META: Record<string, { icon: React.ReactNode; label: string; color: string }> = {
+  robins:         { icon: <IconShield size={14} />, label: 'Robins',  color: 'orange' },
+  'bantams-ladies': { icon: <IconHeart  size={14} />, label: 'Ladies',  color: 'pink'   },
+  'bantams-youth':  { icon: <IconStar   size={14} />, label: 'Youth',   color: 'yellow' },
+};
+
 export function SiteHeader({ club, navOpen, onNavToggle }: Props) {
   const theme = useMantineTheme();
   const clubShort = club.name.replace(' FC', '');
+  const { activeSection, setActiveSection } = useSection();
+  const sectionMeta = activeSection !== 'all' ? SECTION_META[activeSection] : null;
 
   return (
     <Group h="100%" px="md" justify="space-between">
@@ -30,6 +39,20 @@ export function SiteHeader({ club, navOpen, onNavToggle }: Props) {
       </Group>
 
       <Group gap="xs">
+        {sectionMeta && (
+          <Badge
+            color={sectionMeta.color}
+            variant="filled"
+            size="md"
+            leftSection={sectionMeta.icon}
+            style={{ cursor: 'pointer' }}
+            onClick={() => setActiveSection('all')}
+            title="Click to show all sections"
+          >
+            {sectionMeta.label}
+          </Badge>
+        )}
+
         {club.socials.facebook && club.socials.facebook !== '#' && (
           <ActionIcon
             component="a"
