@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Tabs, Stack, Title, Text, Group, Button, Alert, Paper, Code, Loader } from '@mantine/core';
+import { useState, useEffect } from 'react';
+import { Tabs, Stack, Title, Text, Group, Button, Alert, Paper, Code } from '@mantine/core';
 import {
   IconBuilding, IconUsers, IconId, IconNews,
   IconMapPin, IconCreditCard, IconPhoto, IconRefresh,
@@ -16,43 +16,64 @@ import { GalleryForm } from '../components/customize/GalleryForm';
 import { ExportButton } from '../components/customize/ExportButton';
 
 interface Props {
-  data: AppData;
-  onUpdate: (data: AppData) => void;
+  originalData: AppData;
+  editingData: AppData | null;
+  onEditingChange: (data: AppData) => void;
+  onApplyPreview: (data: AppData) => void;
+  onResetPreview: () => void;
+  previewActive: boolean;
 }
 
-export function CustomizePage({ data, onUpdate }: Props) {
-  const [localData, setLocalData] = useState<AppData>(() => JSON.parse(JSON.stringify(data)));
-  const [previewActive, setPreviewActive] = useState(false);
+export function CustomizePage({
+  originalData,
+  editingData,
+  onEditingChange,
+  onApplyPreview,
+  onResetPreview,
+  previewActive,
+}: Props) {
   const [loadingFeeds, setLoadingFeeds] = useState(false);
 
+  // Initialise editing data on first mount if not already set
+  useEffect(() => {
+    if (!editingData) {
+      onEditingChange(JSON.parse(JSON.stringify(originalData)));
+    }
+  }, []);
+
+  // While editingData is being initialised, show nothing yet
+  if (!editingData) return null;
+
+  const localData = editingData;
+  const setLocalData = (updater: AppData | ((prev: AppData) => AppData)) => {
+    const next = typeof updater === 'function' ? updater(editingData) : updater;
+    onEditingChange(next);
+  };
+
   const applyPreview = async () => {
-    // Check if feed-related slugs changed — if so, re-fetch live data
     const slugsChanged =
-      localData.club.clubFeedSlug !== data.club.clubFeedSlug ||
-      localData.club.teamSlugPrefix !== data.club.teamSlugPrefix ||
+      localData.club.clubFeedSlug !== originalData.club.clubFeedSlug ||
+      localData.club.teamSlugPrefix !== originalData.club.teamSlugPrefix ||
       JSON.stringify(localData.teams.sections.map(s => s.teams.map(t => t.slug))) !==
-      JSON.stringify(data.teams.sections.map(s => s.teams.map(t => t.slug)));
+      JSON.stringify(originalData.teams.sections.map(s => s.teams.map(t => t.slug)));
 
     if (slugsChanged) {
       setLoadingFeeds(true);
       try {
         const feeds = await loadFeeds(localData.club, localData.teams);
         const merged = { ...localData, ...feeds };
-        setLocalData(merged);
-        onUpdate(merged);
+        onEditingChange(merged);
+        onApplyPreview(merged);
       } finally {
         setLoadingFeeds(false);
       }
     } else {
-      onUpdate(localData);
+      onApplyPreview(localData);
     }
-    setPreviewActive(true);
   };
 
   const resetPreview = () => {
-    onUpdate(JSON.parse(JSON.stringify(data)));
-    setLocalData(JSON.parse(JSON.stringify(data)));
-    setPreviewActive(false);
+    onResetPreview();
   };
 
   return (
