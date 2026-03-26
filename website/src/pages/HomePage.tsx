@@ -13,7 +13,7 @@ export function HomePage({ club }: Props) {
         <Group justify="space-between" align="center" wrap="wrap" gap="xl">
           <Stack gap="md" style={{ flex: 1, minWidth: 200 }}>
             <div>
-              <Title order={1} c="orange.6">{club.name}</Title>
+              <Title order={1} c="var(--mantine-primary-color-filled)">{club.name}</Title>
               <Text size="lg" c="dimmed">{club.tagline}</Text>
             </div>
             {club.homeBanner ? (
@@ -22,10 +22,10 @@ export function HomePage({ club }: Props) {
               <Text>{club.tagline}</Text>
             )}
             <Group>
-              <Button component={Link} to="/about" variant="outline" color="orange">
+              <Button component={Link} to="/about" variant="outline">
                 About Us
               </Button>
-              <Button component={Link} to="/register" color="orange">
+              <Button component={Link} to="/register">
                 Register &amp; Pay
               </Button>
             </Group>
@@ -49,7 +49,7 @@ export function HomePage({ club }: Props) {
           {club.about.map((item, i) => (
             <Paper key={i} p="md" radius="md" withBorder>
               <Group align="flex-start" gap="md" wrap="nowrap">
-                <ThemeIcon color="orange" variant="light" size="lg" radius="md">
+                <ThemeIcon variant="light" size="lg" radius="md">
                   {tablerIcon(item.icon)}
                 </ThemeIcon>
                 <div>
@@ -61,7 +61,7 @@ export function HomePage({ club }: Props) {
           ))}
         </SimpleGrid>
         <Group mt="md">
-          <Button component={Link} to="/about" variant="outline" color="orange">
+          <Button component={Link} to="/about" variant="outline">
             Read Our Full Story
           </Button>
         </Group>

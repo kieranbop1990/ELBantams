@@ -85,10 +85,10 @@ export function TeamPage({ liveTeams }: Props) {
   if (!teamMeta) {
     return (
       <Stack gap="md">
-        <Button component={Link} to="/teams" variant="subtle" color="orange" leftSection={<IconArrowLeft size={14} />} w="fit-content">
+        <Button component={Link} to="/teams" variant="subtle" leftSection={<IconArrowLeft size={14} />} w="fit-content">
           All Teams
         </Button>
-        <Alert icon={<IconAlertCircle size={16} />} color="orange">Team not found.</Alert>
+        <Alert icon={<IconAlertCircle size={16} />}>Team not found.</Alert>
       </Stack>
     );
   }
@@ -97,7 +97,7 @@ export function TeamPage({ liveTeams }: Props) {
 
   return (
     <Stack gap="md">
-      <Button component={Link} to="/teams" variant="subtle" color="orange" leftSection={<IconArrowLeft size={14} />} w="fit-content">
+      <Button component={Link} to="/teams" variant="subtle" leftSection={<IconArrowLeft size={14} />} w="fit-content">
         All Teams
       </Button>
 
@@ -109,7 +109,7 @@ export function TeamPage({ liveTeams }: Props) {
               <Button
                 size="sm"
                 variant="outline"
-                color={copied ? 'teal' : 'orange'}
+                color={copied ? 'teal' : undefined}
                 leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
                 onClick={copy}
               >
@@ -125,13 +125,13 @@ export function TeamPage({ liveTeams }: Props) {
       </Text>
 
       {feed === undefined ? (
-        <Center py="xl"><Loader color="orange" /></Center>
+        <Center py="xl"><Loader /></Center>
       ) : feed === null ? (
-        <Alert icon={<IconAlertCircle size={16} />} color="orange">
+        <Alert icon={<IconAlertCircle size={16} />}>
           Fixture data is currently unavailable. Please check back later.
         </Alert>
       ) : (
-        <Tabs defaultValue="fixtures" color="orange">
+        <Tabs defaultValue="fixtures">
           <Tabs.List>
             <Tabs.Tab value="fixtures" leftSection={<IconCalendar size={14} />}>
               Fixtures ({feed.fixtures.length})
@@ -151,7 +151,7 @@ export function TeamPage({ liveTeams }: Props) {
                   .map((f) => (
                     <Paper key={f.id} p="sm" withBorder radius="md">
                       <Group justify="space-between" wrap="wrap" gap="xs" mb={4}>
-                        <Badge color="orange" variant="light" size="xs">{f.division}</Badge>
+                        <Badge variant="light" size="xs">{f.division}</Badge>
                         <Text size="xs" c="dimmed">{formatDate(f.date)} · {f.time}</Text>
                       </Group>
                       <Text fw={700} size="sm" ta="center">

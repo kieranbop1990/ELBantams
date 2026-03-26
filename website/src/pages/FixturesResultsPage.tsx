@@ -128,7 +128,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
     return (
       <Stack gap="md">
         <Title order={2}>Fixtures & Results</Title>
-        <Alert icon={<IconAlertCircle size={16} />} color="orange">
+        <Alert icon={<IconAlertCircle size={16} />}>
           Live fixture and result data is currently unavailable. Please check back later.
         </Alert>
       </Stack>
@@ -141,7 +141,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
 
       <Text size="sm" c="dimmed">
         Data sourced from FA Full-Time via{' '}
-        <Text component="a" href="https://github.com/adamsuk/fulltimeCalendar" c="orange.6" size="sm">
+        <Text component="a" href="https://github.com/adamsuk/fulltimeCalendar" c="var(--mantine-primary-color-filled)" size="sm">
           fulltimeCalendar
         </Text>
         . Last updated: {new Date(feed.generated).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.
@@ -158,7 +158,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
         allowDeselect={false}
       />
 
-      <Tabs defaultValue="fixtures" color="orange">
+      <Tabs defaultValue="fixtures">
         <Tabs.List>
           <Tabs.Tab value="fixtures" leftSection={<IconCalendar size={14} />}>
             Fixtures ({fixtures.length})
@@ -176,7 +176,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
               {fixtures.map((f) => (
                 <Paper key={f.id} p="sm" withBorder radius="md">
                   <Group justify="space-between" wrap="wrap" gap="xs" mb={4}>
-                    <Badge color="orange" variant="light" size="xs">{f.division}</Badge>
+                    <Badge variant="light" size="xs">{f.division}</Badge>
                     <Text size="xs" c="dimmed">{formatDate(f.date)} · {f.time}</Text>
                   </Group>
                   <Text fw={700} size="sm" ta="center">

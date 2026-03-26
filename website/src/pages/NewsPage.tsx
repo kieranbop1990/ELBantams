@@ -29,7 +29,6 @@ function NewsCard({ item }: { item: NewsItem }) {
 
             <Button
               variant="subtle"
-              color="orange"
               size="xs"
               onClick={() => setExpanded(e => !e)}
               rightSection={expanded ? <IconChevronUp size={14} /> : <IconChevronDown size={14} />}
@@ -46,7 +45,6 @@ function NewsCard({ item }: { item: NewsItem }) {
             component="a"
             href={item.link}
             variant="outline"
-            color="orange"
             size="xs"
             styles={{ root: { alignSelf: 'flex-start' } }}
           >

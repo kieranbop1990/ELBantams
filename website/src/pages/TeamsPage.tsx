@@ -35,16 +35,15 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
       </Text>
 
       <Group gap="xs">
-        <Button component={Link} to="/register" size="xs" color="orange">Register</Button>
-        <Button component={Link} to="/contact" size="xs" variant="outline" color="orange">Contact</Button>
+        <Button component={Link} to="/register" size="xs">Register</Button>
+        <Button component={Link} to="/contact" size="xs" variant="outline">Contact</Button>
         {liveTeams.length === 1 &&
           <Button
             component={Link}
             to={`/teams/${liveTeams[0].slug}`}
             size="xs"
             variant="light"
-            color="orange"
-            leftSection={<IconCalendar size={12} />}
+                       leftSection={<IconCalendar size={12} />}
           >
             Results & Fixtures
           </Button>
@@ -63,8 +62,7 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
                 to={`/teams/${lt.slug}`}
                 size="xs"
                 variant="light"
-                color="orange"
-                leftSection={<IconCalendar size={12} />}
+                               leftSection={<IconCalendar size={12} />}
                 fullWidth
               >
                 {lt.name}
@@ -91,7 +89,7 @@ export function TeamsPage({ teams, liveTeams }: Props) {
         <div key={si}>
           <Group mb="md" align="center">
             <Text fw={700} size="lg">{section.name}</Text>
-            <Badge color="orange" variant="light">{section.subtitle}</Badge>
+            <Badge variant="light">{section.subtitle}</Badge>
           </Group>
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">

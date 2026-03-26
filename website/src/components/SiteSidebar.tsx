@@ -34,7 +34,7 @@ function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
         {label}
       </Text>
       <Paper mx="md" p="sm" withBorder radius="md">
-        <Badge color="orange" variant="light" size="xs" mb="xs">{next.division}</Badge>
+        <Badge variant="light" size="xs" mb="xs">{next.division}</Badge>
         <Text fw={700} size="sm" ta="center" lh={1.3}>
           {next.home_team}
         </Text>
@@ -78,7 +78,6 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
         <Button
           size="compact-xs"
           variant={activeSection === 'all' ? 'filled' : 'outline'}
-          color="orange"
           onClick={() => setActiveSection('all')}
         >
           All
@@ -88,8 +87,7 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
             key={s.id}
             size="compact-xs"
             variant={activeSection === s.id ? 'filled' : 'outline'}
-            color="orange"
-            onClick={() => setActiveSection(s.id)}
+              onClick={() => setActiveSection(s.id)}
           >
             {s.name} {s.subtitle}
           </Button>
@@ -111,7 +109,6 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
           leftSection={tablerIcon(icon, 16)}
           active={to === '/' ? pathname === '/' : pathname.startsWith(to)}
           onClick={onNavClick}
-          color="orange"
         />
       ))}
 
@@ -125,7 +122,7 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
       </Text>
       <Stack gap={4} px="md" pb="md">
         <Text size="xs">
-          <Text component="a" href={`mailto:${club.email}`} c="orange.6" size="xs">
+          <Text component="a" href={`mailto:${club.email}`} c="var(--mantine-primary-color-filled)" size="xs">
             {club.email}
           </Text>
         </Text>

@@ -38,6 +38,8 @@ export interface Club {
   socials: ClubSocials;
   badge?: string;
   primaryColor?: string;
+  colours?: string;
+  kitDescription?: string;
   clubFeedSlug?: string;
   teamSlugPrefix?: string;
   homeBanner?: string;

@@ -20,12 +20,12 @@ export function ContactPage({ club }: Props) {
       <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
         <Paper p="md" radius="md" withBorder>
           <Group align="flex-start" gap="md" wrap="nowrap">
-            <ThemeIcon color="orange" variant="light" size="lg" radius="md">
+            <ThemeIcon variant="light" size="lg" radius="md">
               <IconMail size={18} />
             </ThemeIcon>
             <div>
               <Text fw={600} mb={4}>Email</Text>
-              <Text component="a" href={`mailto:${club.email}`} c="orange.6" size="sm">
+              <Text component="a" href={`mailto:${club.email}`} c="var(--mantine-primary-color-filled)" size="sm">
                 {club.email}
               </Text>
             </div>
@@ -34,7 +34,7 @@ export function ContactPage({ club }: Props) {
 
         <Paper p="md" radius="md" withBorder>
           <Group align="flex-start" gap="md" wrap="nowrap">
-            <ThemeIcon color="orange" variant="light" size="lg" radius="md">
+            <ThemeIcon variant="light" size="lg" radius="md">
               <IconMapPin size={18} />
             </ThemeIcon>
             <div>

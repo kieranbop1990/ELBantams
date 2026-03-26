@@ -35,7 +35,7 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
           to="/"
           fw={700}
           size="lg"
-          c="orange.6"
+          c="var(--mantine-primary-color-filled)"
           style={{ textDecoration: 'none', whiteSpace: 'nowrap' }}
         >
           {clubShort}
@@ -49,7 +49,7 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
         {activeData && (
           <Box visibleFrom="md">
             <Badge
-              color="orange"
+  
               variant="filled"
               size="md"
               leftSection={tablerIcon(activeData.icon)}
@@ -69,7 +69,7 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             variant="subtle"
-            color="orange"
+
             aria-label="Facebook"
           >
             <IconBrandFacebook size={20} />
@@ -82,7 +82,7 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             variant="subtle"
-            color="orange"
+
             aria-label="Instagram"
           >
             <IconBrandInstagram size={20} />
@@ -95,7 +95,7 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             target="_blank"
             rel="noopener noreferrer"
             variant="subtle"
-            color="orange"
+
             aria-label="Twitter / X"
           >
             <IconBrandTwitter size={20} />

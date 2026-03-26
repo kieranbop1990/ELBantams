@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell, Center, Loader, MantineProvider } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -19,19 +19,31 @@ import { MatchdayPage } from './pages/MatchdayPage';
 import { ContactPage } from './pages/ContactPage';
 import { FixturesResultsPage } from './pages/FixturesResultsPage';
 import { TeamPage } from './pages/TeamPage';
+import { CustomizePage } from './pages/CustomizePage';
 
 export default function App() {
-  const [data, setData] = useState<AppData | null>(null);
+  const [fetchedData, setFetchedData] = useState<AppData | null>(null);
+  const [customData, setCustomData] = useState<AppData | null>(null);
   const [opened, { toggle, close }] = useDisclosure();
 
   useEffect(() => {
-    loadAllData().then(setData);
+    loadAllData().then(setFetchedData);
+  }, []);
+
+  const data = customData ?? fetchedData;
+
+  useEffect(() => {
+    if (data) document.title = data.club.name;
+  }, [data]);
+
+  const handleCustomUpdate = useCallback((updated: AppData) => {
+    setCustomData(updated);
   }, []);
 
   if (!data) {
     return (
       <Center h="100vh">
-        <Loader color="orange" size="xl" />
+        <Loader size="xl" />
       </Center>
     );
   }
@@ -73,6 +85,7 @@ export default function App() {
             <Route path="/gallery" element={<GalleryPage items={data.gallery} />} />
             <Route path="/matchday" element={<MatchdayPage items={data.matchday} club={data.club} />} />
             <Route path="/contact" element={<ContactPage club={data.club} />} />
+            <Route path="/customize" element={<CustomizePage data={fetchedData!} onUpdate={handleCustomUpdate} />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell.Main>
