@@ -3,27 +3,11 @@ import { Link } from 'react-router-dom';
 import { IconCamera, IconCalendar } from '@tabler/icons-react';
 import type { TeamsData, LiveTeam } from '../types';
 import { useSection } from '../context/SectionContext';
+import { liveTeamsForTeam } from '../utils/teamMatching';
 
 interface Props {
   teams: TeamsData;
   liveTeams: LiveTeam[];
-}
-
-// Extract age number from a section team name like "Under 7s" → "U7"
-function ageTag(teamName: string): string | null {
-  const m = teamName.match(/Under\s+(\d+)/i);
-  return m ? `U${m[1]}` : null;
-}
-
-// Find all live teams that match an age group tag
-function matchingTeams(liveTeams: LiveTeam[], tag: string): LiveTeam[] {
-  const lower = tag.toLowerCase();
-  return liveTeams.filter((t) => t.slug.includes(`-${lower}`));
-}
-
-// Find the live team matching a direct slug
-function teamBySlug(liveTeams: LiveTeam[], slug: string): LiveTeam | null {
-  return liveTeams.find((t) => t.slug === slug) ?? null;
 }
 
 function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['teams'][0]; liveTeams: LiveTeam[] }) {
@@ -111,18 +95,9 @@ export function TeamsPage({ teams, liveTeams }: Props) {
           </Group>
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
-            {section.teams.map((team, ti) => {
-              let matched: LiveTeam[] = [];
-              if (team?.slug) {
-                const match = teamBySlug(liveTeams, team.slug);
-                matched = match && [match] || [];
-              } else {
-                const tag = ageTag(team.name);
-                matched = tag && matchingTeams(liveTeams, tag) || [];
-              }
-
-              return <TeamCard key={ti} team={team} liveTeams={matched} />;
-            })}
+            {section.teams.map((team, ti) => (
+              <TeamCard key={ti} team={team} liveTeams={liveTeamsForTeam(team, liveTeams)} />
+            ))}
           </SimpleGrid>
         </div>
       ))}

@@ -6,6 +6,7 @@ import {
 import { IconCalendar, IconTrophy, IconAlertCircle } from '@tabler/icons-react';
 import type { ClubFeed, LiveResult, TeamsData, LiveTeam } from '../types';
 import { useSection } from '../context/SectionContext';
+import { liveTeamsForSection } from '../utils/teamMatching';
 
 const FORM_GAMES = 5;
 
@@ -57,25 +58,6 @@ interface Props {
   liveTeams: LiveTeam[];
 }
 
-/** Build a set of live team names that belong to a given section. */
-function sectionTeamNames(sectionId: string, teams: TeamsData, liveTeams: LiveTeam[]): Set<string> {
-  const section = teams.sections.find(s => s.id === sectionId);
-  if (!section) return new Set();
-  const names = new Set<string>();
-  for (const team of section.teams) {
-    if (team.slug) {
-      const live = liveTeams.find(lt => lt.slug === team.slug);
-      if (live) names.add(live.name);
-    } else {
-      const m = team.name.match(/Under\s+(\d+)/i);
-      if (m) {
-        const tag = `-u${m[1]}`.toLowerCase();
-        liveTeams.filter(lt => lt.slug.includes(tag)).forEach(lt => names.add(lt.name));
-      }
-    }
-  }
-  return names;
-}
 
 function formatDate(iso: string): string {
   const d = new Date(iso + 'T00:00:00');
@@ -88,7 +70,9 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
 
   const allowedTeams = useMemo(() => {
     if (activeSection === 'all') return null;
-    return sectionTeamNames(activeSection, teams, liveTeams);
+    const section = teams.sections.find(s => s.id === activeSection);
+    if (!section) return null;
+    return new Set(liveTeamsForSection(section, liveTeams).map(t => t.name));
   }, [activeSection, teams, liveTeams]);
 
   const teamNames = useMemo(() => {
