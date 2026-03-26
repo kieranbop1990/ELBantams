@@ -1,4 +1,4 @@
-import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button } from '@mantine/core';
+import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button, Box } from '@mantine/core';
 import { useLocation, Link } from 'react-router-dom';
 import {
   IconHome, IconInfoCircle, IconUsers, IconCreditCard, IconId,
@@ -71,36 +71,44 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
 
   return (
     <Stack gap={0} h="100%" style={{ overflowY: 'auto' }}>
-      <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pt="md" pb="xs">
-        View
-      </Text>
-      <Group gap={4} px="md" pb="sm" wrap="wrap">
-        <Button
-          size="compact-xs"
-          variant={activeSection === 'all' ? 'filled' : 'outline'}
-          color="orange"
-          onClick={() => setActiveSection('all')}
-        >
-          All
-        </Button>
-        {sections.map(s => (
+      <Box hiddenFrom="md">
+        <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pt="md" pb="xs">
+          Menu
+        </Text>
+      </Box>
+
+      <Box visibleFrom="md">
+        <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pt="md" pb="xs">
+          View
+        </Text>
+        <Group gap={4} px="md" pb="sm" wrap="wrap">
           <Button
-            key={s.id}
             size="compact-xs"
-            variant={activeSection === s.id ? 'filled' : 'outline'}
+            variant={activeSection === 'all' ? 'filled' : 'outline'}
             color="orange"
-            onClick={() => setActiveSection(s.id)}
+            onClick={() => setActiveSection('all')}
           >
-            {s.name} {s.subtitle}
+            All
           </Button>
-        ))}
-      </Group>
+          {sections.map(s => (
+            <Button
+              key={s.id}
+              size="compact-xs"
+              variant={activeSection === s.id ? 'filled' : 'outline'}
+              color="orange"
+              onClick={() => setActiveSection(s.id)}
+            >
+              {s.name} {s.subtitle}
+            </Button>
+          ))}
+        </Group>
 
-      <Divider mx="md" mb="xs" />
+        <Divider mx="md" mb="xs" />
 
-      <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
-        Menu
-      </Text>
+        <Text fw={600} size="xs" tt="uppercase" c="dimmed" px="md" pb="xs">
+          Menu
+        </Text>
+      </Box>
 
       {NAV_ITEMS.map(({ to, label, icon }) => (
         <NavLink
