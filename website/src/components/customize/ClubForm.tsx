@@ -88,6 +88,13 @@ export function ClubForm({ club, onChange }: Props) {
         <TextInput label="Kit Description" value={club.kitDescription ?? ''} onChange={e => update('kitDescription', e.target.value)} />
       </Group>
 
+      <Divider label="Live Feeds (fulltimeCalendar)" />
+
+      <Group grow>
+        <TextInput label="Club Feed Slug" description='e.g. "my-club" — used to fetch fixtures from fulltimeCalendar' value={club.clubFeedSlug ?? ''} onChange={e => update('clubFeedSlug', e.target.value)} />
+        <TextInput label="Team Slug Prefix" description='e.g. "my-club-" — filters teams from the feed index' value={club.teamSlugPrefix ?? ''} onChange={e => update('teamSlugPrefix', e.target.value)} />
+      </Group>
+
       <Divider label="Home Banner" />
 
       <Textarea

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Tabs, Stack, Title, Text, Group, Button, Alert, Paper, Code } from '@mantine/core';
+import { Tabs, Stack, Title, Text, Group, Button, Alert, Paper, Code, Loader } from '@mantine/core';
 import {
   IconBuilding, IconUsers, IconId, IconNews,
   IconMapPin, IconCreditCard, IconPhoto, IconRefresh,
 } from '@tabler/icons-react';
 import type { AppData } from '../types';
+import { loadFeeds } from '../data';
 import { ClubForm } from '../components/customize/ClubForm';
 import { TeamsForm } from '../components/customize/TeamsForm';
 import { CommitteeForm } from '../components/customize/CommitteeForm';
@@ -22,9 +23,29 @@ interface Props {
 export function CustomizePage({ data, onUpdate }: Props) {
   const [localData, setLocalData] = useState<AppData>(() => JSON.parse(JSON.stringify(data)));
   const [previewActive, setPreviewActive] = useState(false);
+  const [loadingFeeds, setLoadingFeeds] = useState(false);
 
-  const applyPreview = () => {
-    onUpdate(localData);
+  const applyPreview = async () => {
+    // Check if feed-related slugs changed — if so, re-fetch live data
+    const slugsChanged =
+      localData.club.clubFeedSlug !== data.club.clubFeedSlug ||
+      localData.club.teamSlugPrefix !== data.club.teamSlugPrefix ||
+      JSON.stringify(localData.teams.sections.map(s => s.teams.map(t => t.slug))) !==
+      JSON.stringify(data.teams.sections.map(s => s.teams.map(t => t.slug)));
+
+    if (slugsChanged) {
+      setLoadingFeeds(true);
+      try {
+        const feeds = await loadFeeds(localData.club, localData.teams);
+        const merged = { ...localData, ...feeds };
+        setLocalData(merged);
+        onUpdate(merged);
+      } finally {
+        setLoadingFeeds(false);
+      }
+    } else {
+      onUpdate(localData);
+    }
     setPreviewActive(true);
   };
 
@@ -50,6 +71,7 @@ export function CustomizePage({ data, onUpdate }: Props) {
             <Button
               variant="filled"
               onClick={applyPreview}
+              loading={loadingFeeds}
             >
               Apply Preview
             </Button>

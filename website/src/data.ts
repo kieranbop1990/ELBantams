@@ -58,24 +58,18 @@ async function loadLiveTeams(teamSlugPrefix: string): Promise<LiveTeam[]> {
   }
 }
 
-export async function loadAllData(): Promise<AppData> {
-  // Load club config first so we can derive external feed URLs from it
-  const club = await load<Club>('club.json');
-
+/** Fetch live feeds (club feed, live teams, sidebar feeds) for a given club + teams config. */
+export async function loadFeeds(
+  club: Club,
+  teams: TeamsData,
+): Promise<Pick<AppData, 'clubFeed' | 'liveTeams' | 'sidebarFeeds'>> {
   const feedSlug = club.clubFeedSlug ?? '';
   const teamSlugPrefix = club.teamSlugPrefix ?? `${feedSlug}-`;
 
-  const [teams, committee, registration, news, gallery, matchday, clubFeed, liveTeams] =
-    await Promise.all([
-      load<TeamsData>('teams.json'),
-      load('committee.json'),
-      load('registration.json'),
-      load('news.json'),
-      load('gallery.json'),
-      load('matchday.json'),
-      loadClubFeed(feedSlug),
-      loadLiveTeams(teamSlugPrefix),
-    ]);
+  const [clubFeed, liveTeams] = await Promise.all([
+    loadClubFeed(feedSlug),
+    loadLiveTeams(teamSlugPrefix),
+  ]);
 
   const sidebarConfigs = teams.sections
     .flatMap(s => s.teams.filter(t => t.sidebar && t.slug).map(t => ({ slug: t.slug!, label: t.name, sectionId: s.id })));
@@ -90,5 +84,24 @@ export async function loadAllData(): Promise<AppData> {
   );
   const sidebarFeeds = resolvedFeeds.filter((f): f is { feed: TeamFeed; label: string; sectionId: string } => f !== null);
 
-  return { club, teams, committee, registration, news, gallery, matchday, clubFeed, liveTeams, sidebarFeeds } as AppData;
+  return { clubFeed, liveTeams, sidebarFeeds };
+}
+
+export async function loadAllData(): Promise<AppData> {
+  // Load club config first so we can derive external feed URLs from it
+  const club = await load<Club>('club.json');
+
+  const [teams, committee, registration, news, gallery, matchday] =
+    await Promise.all([
+      load<TeamsData>('teams.json'),
+      load('committee.json'),
+      load('registration.json'),
+      load('news.json'),
+      load('gallery.json'),
+      load('matchday.json'),
+    ]);
+
+  const feeds = await loadFeeds(club, teams);
+
+  return { club, teams, committee, registration, news, gallery, matchday, ...feeds } as AppData;
 }
