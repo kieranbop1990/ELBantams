@@ -1,4 +1,4 @@
-import { Burger, Group, Text, ActionIcon, Badge, Image } from '@mantine/core';
+import { Burger, Group, Text, ActionIcon, Badge } from '@mantine/core';
 import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import type { Club, TeamSection } from '../types';
@@ -39,7 +39,7 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
         </Text>
       </Group>
 
-      <Group gap="xs">
+      <Group gap="sm">
         {activeData && (
           <Badge
             color="orange"
@@ -53,17 +53,6 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             {activeData.name} {activeData.subtitle}
           </Badge>
         )}
-
-        {logosToShow.map(s => (
-          <Image
-            key={s.id}
-            src={s.logo}
-            alt={`${s.name} ${s.subtitle} logo`}
-            h={36}
-            w="auto"
-            fit="contain"
-          />
-        ))}
 
         {club.socials.facebook && club.socials.facebook !== '#' && (
           <ActionIcon
@@ -104,6 +93,19 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             <IconBrandTwitter size={20} />
           </ActionIcon>
         )}
+
+        <Group gap={4}>
+          {logosToShow.map(s => (
+            <img
+              key={s.id}
+              src={s.logo}
+              alt={`${s.name} logo`}
+              height={44}
+              style={{ objectFit: 'contain', display: 'block' }}
+              onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            />
+          ))}
+        </Group>
       </Group>
     </Group>
   );
