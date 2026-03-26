@@ -4,7 +4,7 @@ import {
   IconHome, IconInfoCircle, IconUsers, IconCreditCard, IconId,
   IconNews, IconPhoto, IconMapPin, IconMail, IconCalendar,
 } from '@tabler/icons-react';
-import type { Club, BantamsFeed, BantamsTeamFeed } from '../types';
+import type { Club, ClubFeed, TeamFeed } from '../types';
 
 const NAV_ITEMS = [
   { to: '/',          label: 'Home',              icon: <IconHome size={16} /> },
@@ -19,7 +19,7 @@ const NAV_ITEMS = [
   { to: '/contact',   label: 'Contact',           icon: <IconMail size={16} /> },
 ];
 
-function NextTeamFixture({ feed, label }: { feed: BantamsTeamFeed; label: string }) {
+function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
   const today = new Date().toISOString().slice(0, 10);
   const upcoming = feed.fixtures
     .filter((f) => f.date >= today)
@@ -55,12 +55,12 @@ function NextTeamFixture({ feed, label }: { feed: BantamsTeamFeed; label: string
 
 interface Props {
   club: Club;
-  sidebarFeeds?: { feed: BantamsTeamFeed; label: string }[];
-  bantamsFeed?: BantamsFeed | null;
+  sidebarFeeds?: { feed: TeamFeed; label: string }[];
+  clubFeed?: ClubFeed | null;
   onNavClick: () => void;
 }
 
-export function SiteSidebar({ club, sidebarFeeds, bantamsFeed, onNavClick }: Props) {
+export function SiteSidebar({ club, sidebarFeeds, clubFeed, onNavClick }: Props) {
   const { pathname } = useLocation();
 
   return (
@@ -86,9 +86,9 @@ export function SiteSidebar({ club, sidebarFeeds, bantamsFeed, onNavClick }: Pro
         <NextTeamFixture key={label} feed={feed} label={`Next ${label} Fixture`} />
       ))}
 
-      {bantamsFeed && bantamsFeed.fixtures.length > 0 && (() => {
+      {clubFeed && clubFeed.fixtures.length > 0 && (() => {
         const today = new Date().toISOString().slice(0, 10);
-        const upcoming = bantamsFeed.fixtures
+        const upcoming = clubFeed.fixtures
           .filter((f) => f.date >= today)
           .sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
         const next = upcoming[0];

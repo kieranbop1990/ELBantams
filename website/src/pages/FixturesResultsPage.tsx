@@ -4,11 +4,11 @@ import {
   Table, Alert,
 } from '@mantine/core';
 import { IconCalendar, IconTrophy, IconAlertCircle } from '@tabler/icons-react';
-import type { BantamsFeed, BantamsResult } from '../types';
+import type { ClubFeed, LiveResult } from '../types';
 
 const FORM_GAMES = 5;
 
-function getOutcome(r: BantamsResult): 'W' | 'D' | 'L' | null {
+function getOutcome(r: LiveResult): 'W' | 'D' | 'L' | null {
   if (r.goals_for === null || r.goals_against === null) return null;
   if (r.goals_for > r.goals_against) return 'W';
   if (r.goals_for === r.goals_against) return 'D';
@@ -17,7 +17,7 @@ function getOutcome(r: BantamsResult): 'W' | 'D' | 'L' | null {
 
 const outcomeColor: Record<'W' | 'D' | 'L', string> = { W: 'green', D: 'yellow', L: 'red' };
 
-function ResultsStats({ results }: { results: BantamsResult[] }) {
+function ResultsStats({ results }: { results: LiveResult[] }) {
   const outcomes = results.map(getOutcome).filter((o): o is 'W' | 'D' | 'L' => o !== null);
   if (outcomes.length === 0) return null;
 
@@ -51,7 +51,7 @@ function ResultsStats({ results }: { results: BantamsResult[] }) {
 }
 
 interface Props {
-  feed: BantamsFeed | null;
+  feed: ClubFeed | null;
 }
 
 function formatDate(iso: string): string {

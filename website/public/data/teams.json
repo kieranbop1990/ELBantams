@@ -13,7 +13,8 @@
           "manager": "TBC",
           "coach": "TBC",
           "contact": "TBC",
-          "slug": "east-leake-robins-fc"
+          "slug": "east-leake-robins-fc",
+          "sidebar": true
         },
         {
           "name": "Reserves",
@@ -39,7 +40,8 @@
           "manager": "TBC",
           "coach": "TBC",
           "contact": "TBC",
-          "slug": "east-leake-fc-ladies"
+          "slug": "east-leake-fc-ladies",
+          "sidebar": true
         }
       ]
     },

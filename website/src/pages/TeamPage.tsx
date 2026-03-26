@@ -5,7 +5,7 @@ import {
   Alert, Loader, Center, Button, Tooltip, CopyButton,
 } from '@mantine/core';
 import { IconCalendar, IconTrophy, IconAlertCircle, IconCopy, IconCheck, IconArrowLeft } from '@tabler/icons-react';
-import type { BantamsTeam, BantamsTeamFeed } from '../types';
+import type { LiveTeam, TeamFeed } from '../types';
 import { loadTeamFeed, teamCalendarUrl } from '../data';
 
 const FORM_GAMES = 5;
@@ -14,7 +14,7 @@ type Outcome = 'W' | 'D' | 'L';
 const outcomeColor: Record<Outcome, string> = { W: 'green', D: 'yellow', L: 'red' };
 
 function getTeamOutcome(
-  r: BantamsTeamFeed['results'][number],
+  r: TeamFeed['results'][number],
   teamName: string,
 ): Outcome | null {
   if (r.home_score === null || r.away_score === null) return null;
@@ -26,7 +26,7 @@ function getTeamOutcome(
   return 'L';
 }
 
-function TeamResultsStats({ results, teamName }: { results: BantamsTeamFeed['results']; teamName: string }) {
+function TeamResultsStats({ results, teamName }: { results: TeamFeed['results']; teamName: string }) {
   const outcomes = results
     .map((r) => getTeamOutcome(r, teamName))
     .filter((o): o is Outcome => o !== null);
@@ -62,7 +62,7 @@ function TeamResultsStats({ results, teamName }: { results: BantamsTeamFeed['res
 }
 
 interface Props {
-  bantamsTeams: BantamsTeam[];
+  liveTeams: LiveTeam[];
 }
 
 function formatDate(iso: string): string {
@@ -70,11 +70,11 @@ function formatDate(iso: string): string {
   return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-export function TeamPage({ bantamsTeams }: Props) {
+export function TeamPage({ liveTeams }: Props) {
   const { teamSlug } = useParams<{ teamSlug: string }>();
-  const [feed, setFeed] = useState<BantamsTeamFeed | null | undefined>(undefined);
+  const [feed, setFeed] = useState<TeamFeed | null | undefined>(undefined);
 
-  const teamMeta = bantamsTeams.find((t) => t.slug === teamSlug);
+  const teamMeta = liveTeams.find((t) => t.slug === teamSlug);
 
   useEffect(() => {
     if (!teamMeta) { setFeed(null); return; }
