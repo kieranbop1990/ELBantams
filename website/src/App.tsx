@@ -44,12 +44,13 @@ export default function App() {
         padding="md"
       >
         <AppShell.Header>
-          <SiteHeader club={data.club} navOpen={opened} onNavToggle={toggle} />
+          <SiteHeader club={data.club} sections={data.teams.sections} navOpen={opened} onNavToggle={toggle} />
         </AppShell.Header>
 
         <AppShell.Navbar>
           <SiteSidebar
             club={data.club}
+            sections={data.teams.sections}
             sidebarFeeds={data.sidebarFeeds}
             onNavClick={close}
           />

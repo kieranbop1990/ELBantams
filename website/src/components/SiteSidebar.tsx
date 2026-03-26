@@ -4,8 +4,8 @@ import {
   IconHome, IconInfoCircle, IconUsers, IconCreditCard, IconId,
   IconNews, IconPhoto, IconMapPin, IconMail, IconCalendar,
 } from '@tabler/icons-react';
-import type { Club, TeamFeed } from '../types';
-import { useSection, SECTION_OPTIONS } from '../context/SectionContext';
+import type { Club, TeamFeed, TeamSection } from '../types';
+import { useSection } from '../context/SectionContext';
 
 const NAV_ITEMS = [
   { to: '/',          label: 'Home',              icon: <IconHome size={16} /> },
@@ -56,11 +56,12 @@ function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
 
 interface Props {
   club: Club;
+  sections: TeamSection[];
   sidebarFeeds?: { feed: TeamFeed; label: string; sectionId: string }[];
   onNavClick: () => void;
 }
 
-export function SiteSidebar({ club, sidebarFeeds, onNavClick }: Props) {
+export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props) {
   const { pathname } = useLocation();
   const { activeSection, setActiveSection } = useSection();
 
@@ -74,15 +75,23 @@ export function SiteSidebar({ club, sidebarFeeds, onNavClick }: Props) {
         View
       </Text>
       <Group gap={4} px="md" pb="sm" wrap="wrap">
-        {SECTION_OPTIONS.map(opt => (
+        <Button
+          size="compact-xs"
+          variant={activeSection === 'all' ? 'filled' : 'outline'}
+          color="orange"
+          onClick={() => setActiveSection('all')}
+        >
+          All
+        </Button>
+        {sections.map(s => (
           <Button
-            key={opt.id}
+            key={s.id}
             size="compact-xs"
-            variant={activeSection === opt.id ? 'filled' : 'outline'}
+            variant={activeSection === s.id ? 'filled' : 'outline'}
             color="orange"
-            onClick={() => setActiveSection(opt.id)}
+            onClick={() => setActiveSection(s.id)}
           >
-            {opt.shortLabel}
+            {s.name} {s.subtitle}
           </Button>
         ))}
       </Group>
