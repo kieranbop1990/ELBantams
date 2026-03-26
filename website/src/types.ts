@@ -46,6 +46,7 @@ export interface TeamSection {
   name: string;
   subtitle: string;
   icon: string;
+  logo?: string;
   teams: Team[];
 }
 

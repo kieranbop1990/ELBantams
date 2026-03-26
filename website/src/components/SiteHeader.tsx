@@ -1,4 +1,4 @@
-import { Burger, Group, Text, ActionIcon, Badge } from '@mantine/core';
+import { Burger, Group, Text, ActionIcon, Badge, Image } from '@mantine/core';
 import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter } from '@tabler/icons-react';
 import { Link } from 'react-router-dom';
 import type { Club, TeamSection } from '../types';
@@ -18,6 +18,10 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
   const activeData = activeSection !== 'all'
     ? sections.find(s => s.id === activeSection)
     : null;
+
+  const logosToShow = activeSection === 'all'
+    ? sections.filter(s => s.logo)
+    : sections.filter(s => s.id === activeSection && s.logo);
 
   return (
     <Group h="100%" px="md" justify="space-between">
@@ -49,6 +53,17 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             {activeData.name} {activeData.subtitle}
           </Badge>
         )}
+
+        {logosToShow.map(s => (
+          <Image
+            key={s.id}
+            src={s.logo}
+            alt={`${s.name} ${s.subtitle} logo`}
+            h={36}
+            w="auto"
+            fit="contain"
+          />
+        ))}
 
         {club.socials.facebook && club.socials.facebook !== '#' && (
           <ActionIcon
