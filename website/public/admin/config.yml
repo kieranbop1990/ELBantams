@@ -2,7 +2,6 @@ backend:
   name: github
   repo: adamsuk/ELBantams
   branch: main
-  auth_type: implicit
 
 media_folder: website/public/images
 public_folder: images
