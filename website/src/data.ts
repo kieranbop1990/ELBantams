@@ -1,4 +1,4 @@
-import type { AppData, Club, ClubFeed, LiveTeam, TeamFeed, TeamsData } from './types';
+import type { AppData, Club, ClubFeed, CommitteeData, GalleryItem, LiveTeam, MatchdayItem, NewsItem, RegistrationItem, TeamFeed, TeamsData } from './types';
 
 const BASE = 'data/';
 const FEEDS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/feeds/';
@@ -134,11 +134,11 @@ export async function loadAllData(): Promise<AppData> {
   const [teams, committee, registration, news, gallery, matchday] =
     await Promise.all([
       load<TeamsData>('teams.json'),
-      load('committee.json'),
-      load('registration.json'),
-      load('news.json'),
-      load('gallery.json'),
-      load('matchday.json'),
+      load<CommitteeData>('committee.json'),
+      load<{ items: RegistrationItem[] }>('registration.json').then(d => d.items),
+      load<{ items: NewsItem[] }>('news.json').then(d => d.items),
+      load<{ items: GalleryItem[] }>('gallery.json').then(d => d.items),
+      load<{ items: MatchdayItem[] }>('matchday.json').then(d => d.items),
     ]);
 
   const feeds = await loadFeeds(club, teams);

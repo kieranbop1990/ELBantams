@@ -12,29 +12,31 @@ That's it — your site will be live within minutes.
 
 ---
 
-## Using the Customise Page
+## Using the Content Manager (CMS)
 
-Visit your site (or the original) and navigate to `/#/customise`. The editor lets you configure:
+The site includes **Sveltia CMS**, a git-based content manager. Navigate to `/admin/` on your deployed site (or visit `/#/customise` to be redirected).
 
-| Tab | What you can edit |
-|-----|-------------------|
-| **Club** | Name, tagline, colours, socials, badge, address, about section, history |
+### What you can edit
+
+| Collection | What you can edit |
+|------------|-------------------|
+| **Club Details** | Name, tagline, colours, socials, badge, address, about section, history |
 | **Teams** | Sections (e.g. Seniors, Youth), individual teams, managers, coaches |
 | **Committee** | Committee members and their roles |
 | **News** | News articles with optional expandable body text |
 | **Matchday** | Ground information, directions, facilities |
 | **Registration** | Registration options with payment links |
-| **Gallery** | Photo captions and image paths |
+| **Gallery** | Photo captions and images |
 
-### Workflow
+### How it works
 
-1. Fill in your club details across the tabs
-2. Click **Apply Preview** to see changes live across the site
-3. Navigate to other pages (Home, Teams, etc.) to verify everything looks right
-4. Click **Export ZIP** to download your configuration files
-5. Replace the files in `website/public/data/` in your fork with the exported ones
-6. Add your images to `website/public/images/`
-7. Push to `main` — done!
+1. Go to `/admin/` on your deployed site
+2. Log in with your **GitHub account** (you need write access to the repository)
+3. Edit content through the web-based forms
+4. Click **Save** — changes are committed directly to your repository
+5. GitHub Actions automatically rebuilds and deploys your site
+
+No need to download files, edit JSON, or push from the command line.
 
 ---
 

@@ -1,8 +1,10 @@
-[
-  { "src": "", "caption": "Club Photo" },
-  { "src": "", "caption": "Team Photo" },
-  { "src": "", "caption": "Matchday" },
-  { "src": "", "caption": "Youth" },
-  { "src": "", "caption": "Girls & Ladies" },
-  { "src": "", "caption": "Events" }
-]
+{
+  "items": [
+    { "src": "", "caption": "Club Photo" },
+    { "src": "", "caption": "Team Photo" },
+    { "src": "", "caption": "Matchday" },
+    { "src": "", "caption": "Youth" },
+    { "src": "", "caption": "Girls & Ladies" },
+    { "src": "", "caption": "Events" }
+  ]
+}

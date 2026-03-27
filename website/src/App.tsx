@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell, Center, Loader, MantineProvider } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -22,32 +22,16 @@ import { TeamPage } from './pages/TeamPage';
 import { CustomizePage } from './pages/CustomizePage';
 
 export default function App() {
-  const [fetchedData, setFetchedData] = useState<AppData | null>(null);
-  // editingData holds the in-progress form state — survives route changes
-  const [editingData, setEditingData] = useState<AppData | null>(null);
-  // previewData is what the rest of the site renders when preview is active
-  const [previewData, setPreviewData] = useState<AppData | null>(null);
+  const [data, setData] = useState<AppData | null>(null);
   const [opened, { toggle, close }] = useDisclosure();
 
   useEffect(() => {
-    loadAllData().then(setFetchedData);
+    loadAllData().then(setData);
   }, []);
-
-  const data = previewData ?? fetchedData;
 
   useEffect(() => {
     if (data) document.title = data.club.name;
   }, [data]);
-
-  const handleApplyPreview = useCallback((updated: AppData) => {
-    setPreviewData(updated);
-    setEditingData(updated);
-  }, []);
-
-  const handleResetPreview = useCallback(() => {
-    setPreviewData(null);
-    setEditingData(null);
-  }, []);
 
   if (!data) {
     return (
@@ -95,16 +79,7 @@ export default function App() {
             <Route path="/gallery" element={<GalleryPage items={data.gallery} />} />
             <Route path="/matchday" element={<MatchdayPage items={data.matchday} club={data.club} />} />
             <Route path="/contact" element={<ContactPage club={data.club} />} />
-            <Route path="/customise" element={
-              <CustomizePage
-                originalData={fetchedData!}
-                editingData={editingData}
-                onEditingChange={setEditingData}
-                onApplyPreview={handleApplyPreview}
-                onResetPreview={handleResetPreview}
-                previewActive={previewData !== null}
-              />
-            } />
+            <Route path="/customise" element={<CustomizePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell.Main>
