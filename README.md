@@ -11,7 +11,7 @@ This site is **whitelabel** — any grassroots football club can fork it and mak
 **Quick start:**
 
 1. **Fork** this repository
-2. Visit `/#/customize` on the live site to use the built-in editor
+2. Visit `/#/customise` on the live site to use the built-in editor
 3. Fill in your club details, pick your colour, set up teams
 4. Click **Export ZIP** and replace the files in `website/public/data/`
 5. Add your images to `website/public/images/`
@@ -83,7 +83,7 @@ Bantams youth team fixtures and results are loaded automatically from the [fullt
 | `/gallery` | Photo gallery |
 | `/matchday` | Matchday info (directions, parking, facilities) |
 | `/contact` | Contact form |
-| `/customize` | Whitelabel config editor |
+| `/customise` | Whitelabel config editor |
 
 ## Deployment
 

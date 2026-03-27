@@ -24,7 +24,7 @@ export function ExportButton({ data }: Props) {
       'Club Configuration Files',
       '========================',
       '',
-      'These JSON files were exported from the Customize page.',
+      'These JSON files were exported from the Customise page.',
       '',
       'To deploy your club site:',
       '1. Fork the repository: https://github.com/adamsuk/ELBantams',

@@ -1,6 +1,6 @@
 import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button } from '@mantine/core';
 import { useLocation, Link } from 'react-router-dom';
-import { IconCalendar } from '@tabler/icons-react';
+import { IconCalendar, IconSettings } from '@tabler/icons-react';
 import type { Club, NavItem, TeamFeed, TeamSection } from '../types';
 import { useSection } from '../context/SectionContext';
 import { tablerIcon } from '../utils/icons';
@@ -130,6 +130,18 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
           {club.address.line1}, {club.address.line2}, {club.address.postcode}
         </Text>
       </Stack>
+
+      <div style={{ marginTop: 'auto' }}>
+        <Divider mx="md" mb="xs" />
+        <NavLink
+          component={Link}
+          to="/customise"
+          label="Customise"
+          leftSection={<IconSettings size={16} />}
+          active={pathname === '/customise'}
+          onClick={onNavClick}
+        />
+      </div>
     </Stack>
   );
 }
