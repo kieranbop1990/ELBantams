@@ -5,7 +5,7 @@ This site is designed to work for **any grassroots football club**. No coding re
 ## Quick Start (3 Steps)
 
 1. **Fork** this repository on GitHub (click the "Fork" button)
-2. **Customise** your club details using the built-in editor at `/#/customize`
+2. **Customise** your club details using the built-in editor at `/#/customise`
 3. **Deploy** by enabling GitHub Pages in your repo settings
 
 That's it — your site will be live within minutes.
@@ -14,7 +14,7 @@ That's it — your site will be live within minutes.
 
 ## Using the Customise Page
 
-Visit your site (or the original) and navigate to `/#/customize`. The editor lets you configure:
+Visit your site (or the original) and navigate to `/#/customise`. The editor lets you configure:
 
 | Tab | What you can edit |
 |-----|-------------------|
@@ -98,7 +98,7 @@ If your club isn't in the fulltimeCalendar system yet, the fixtures pages will g
 
 ## Manual JSON Editing (Advanced)
 
-If you prefer to edit JSON directly instead of using the customize page:
+If you prefer to edit JSON directly instead of using the customise page:
 
 - `website/public/data/club.json` — Club identity, colours, socials, nav, about, history
 - `website/public/data/teams.json` — Team sections and individual teams

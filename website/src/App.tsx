@@ -95,7 +95,7 @@ export default function App() {
             <Route path="/gallery" element={<GalleryPage items={data.gallery} />} />
             <Route path="/matchday" element={<MatchdayPage items={data.matchday} club={data.club} />} />
             <Route path="/contact" element={<ContactPage club={data.club} />} />
-            <Route path="/customize" element={
+            <Route path="/customise" element={
               <CustomizePage
                 originalData={fetchedData!}
                 editingData={editingData}

@@ -5,7 +5,7 @@ import {
   IconDog, IconUserPlus, IconUserCircle, IconBallFootball, IconCamera,
   IconAward, IconHeartHandshake, IconMail, IconInfoCircle, IconHelp,
   IconHome, IconCalendar, IconCreditCard, IconId, IconNews, IconPhoto,
-  IconChartLine,
+  IconChartLine, IconSettings,
 } from '@tabler/icons-react';
 
 /** Map FontAwesome class names (fa-xxx) to Tabler icons. */
@@ -41,6 +41,7 @@ function buildMap(size: number): Record<string, ReactNode> {
     'fa-id-card':        <IconId size={size} />,
     'fa-newspaper':      <IconNews size={size} />,
     'fa-images':         <IconPhoto size={size} />,
+    'fa-cog':            <IconSettings size={size} />,
   };
 }
 
