@@ -1,9 +1,10 @@
+import { useMemo } from 'react';
 import { Title, Text, SimpleGrid, Paper, Badge, Button, Group, Stack, Image, Center, Divider } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconCamera, IconCalendar } from '@tabler/icons-react';
 import type { TeamsData, LiveTeam } from '../types';
 import { useSection } from '../context/SectionContext';
-import { liveTeamsForTeam } from '../utils/teamMatching';
+import { liveTeamsForTeam, findDuplicateTeamNames, teamDisplayLabel } from '../utils/teamMatching';
 
 interface Props {
   teams: TeamsData;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['teams'][0]; liveTeams: LiveTeam[] }) {
+  const duplicateNames = useMemo(() => findDuplicateTeamNames(liveTeams), [liveTeams]);
   return (
     <Paper p="md" radius="md" withBorder>
       {team.photo ? (
@@ -40,7 +42,7 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
         {liveTeams.length === 1 &&
           <Button
             component={Link}
-            to={`/teams/${liveTeams[0].slug}`}
+            to={`/teams/${liveTeams[0].league}/${liveTeams[0].slug}`}
             size="xs"
             variant="light"
                        leftSection={<IconCalendar size={12} />}
@@ -57,15 +59,15 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
           <Stack gap={4}>
             {liveTeams.map((lt) => (
               <Button
-                key={lt.slug}
+                key={`${lt.league}/${lt.slug}`}
                 component={Link}
-                to={`/teams/${lt.slug}`}
+                to={`/teams/${lt.league}/${lt.slug}`}
                 size="xs"
                 variant="light"
                                leftSection={<IconCalendar size={12} />}
                 fullWidth
               >
-                {lt.name}
+                {teamDisplayLabel(lt.name, lt.league, duplicateNames)}
               </Button>
             ))}
           </Stack>

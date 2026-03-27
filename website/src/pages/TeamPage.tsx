@@ -71,10 +71,12 @@ function formatDate(iso: string): string {
 }
 
 export function TeamPage({ liveTeams }: Props) {
-  const { teamSlug } = useParams<{ teamSlug: string }>();
+  const { teamSlug, league } = useParams<{ teamSlug: string; league?: string }>();
   const [feed, setFeed] = useState<TeamFeed | null | undefined>(undefined);
 
-  const teamMeta = liveTeams.find((t) => t.slug === teamSlug);
+  const teamMeta = league
+    ? liveTeams.find((t) => t.slug === teamSlug && t.league === league)
+    : liveTeams.find((t) => t.slug === teamSlug);
 
   useEffect(() => {
     if (!teamMeta) { setFeed(null); return; }

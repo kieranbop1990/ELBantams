@@ -125,19 +125,30 @@ export function TeamsForm({ teams, onChange, feedTeams, teamSlugPrefix }: Props)
   const matchingFeedTeams = feedTeams && teamSlugPrefix
     ? feedTeams
         .filter(t => t.slug.startsWith(teamSlugPrefix))
-        .map(t => t.slug)
-        .sort()
+        .sort((a, b) => a.slug.localeCompare(b.slug) || a.league.localeCompare(b.league))
     : undefined;
+
+  // Detect slugs that appear in multiple leagues (e.g. Saturday + Sunday)
+  const duplicateSlugs = new Set<string>();
+  if (matchingFeedTeams) {
+    const seen = new Set<string>();
+    for (const t of matchingFeedTeams) {
+      if (seen.has(t.slug)) duplicateSlugs.add(t.slug);
+      else seen.add(t.slug);
+    }
+  }
 
   return (
     <Stack gap="lg">
       <Title order={4}>Teams & Sections</Title>
       {matchingFeedTeams && matchingFeedTeams.length > 0 && (
         <Alert icon={<IconInfoCircle size={16} />} variant="light">
-          <Text size="xs" mb={4}>{matchingFeedTeams.length} teams found in fulltimeCalendar matching prefix "{teamSlugPrefix}". Copy a slug below into the "Feed Team Slug" field for each team.</Text>
+          <Text size="xs" mb={4}>{matchingFeedTeams.length} teams found in fulltimeCalendar matching prefix "{teamSlugPrefix}". Copy a slug below into the "Feed Team Slug" field for each team.{duplicateSlugs.size > 0 && ' Note: some teams appear in both Saturday and Sunday leagues — they share the same slug but have separate fixtures.'}</Text>
           <Group gap={4} wrap="wrap">
-            {matchingFeedTeams.map(slug => (
-              <Badge key={slug} variant="outline" size="sm" style={{ textTransform: 'none' }}>{slug}</Badge>
+            {matchingFeedTeams.map(t => (
+              <Badge key={`${t.league}/${t.slug}`} variant="outline" size="sm" style={{ textTransform: 'none' }}>
+                {t.slug}{duplicateSlugs.has(t.slug) ? ` (${/saturday/i.test(t.league) ? 'Sat' : /sunday/i.test(t.league) ? 'Sun' : t.league})` : ''}
+              </Badge>
             ))}
           </Group>
         </Alert>

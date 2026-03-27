@@ -4,9 +4,9 @@ import {
   Table, Alert,
 } from '@mantine/core';
 import { IconCalendar, IconTrophy, IconAlertCircle } from '@tabler/icons-react';
-import type { ClubFeed, LiveResult, TeamsData, LiveTeam } from '../types';
+import type { ClubFeed, LiveResult, LiveFixture, TeamsData, LiveTeam } from '../types';
 import { useSection } from '../context/SectionContext';
-import { liveTeamsForSection } from '../utils/teamMatching';
+import { liveTeamsForSection, findDuplicateTeamNames, teamDisplayLabel, leagueQualifiedSlug } from '../utils/teamMatching';
 
 const FORM_GAMES = 5;
 
@@ -68,33 +68,54 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
   const { activeSection } = useSection();
   const [selectedTeam, setSelectedTeam] = useState<string | null>(null);
 
-  const allowedTeams = useMemo(() => {
+  // Use composite key (team + league) so same-named Saturday/Sunday teams stay separate
+  const fixtureKey = (f: LiveFixture | LiveResult) => `${f.team}\0${f.league}`;
+
+  const allowedKeys = useMemo(() => {
     if (activeSection === 'all') return null;
     const section = teams.sections.find(s => s.id === activeSection);
     if (!section) return null;
-    return new Set(liveTeamsForSection(section, liveTeams).map(t => t.name));
+    return new Set(liveTeamsForSection(section, liveTeams).map(t => leagueQualifiedSlug(t)));
   }, [activeSection, teams, liveTeams]);
 
-  const teamNames = useMemo(() => {
+  const duplicateNames = useMemo(() => findDuplicateTeamNames(liveTeams), [liveTeams]);
+
+  const teamOptions = useMemo(() => {
     if (!feed) return [];
-    const names = new Set<string>();
-    feed.fixtures.forEach((f) => f.team && names.add(f.team));
-    feed.results.forEach((r) => r.team && names.add(r.team));
-    return Array.from(names)
-      .filter(n => !allowedTeams || allowedTeams.has(n))
-      .sort();
-  }, [feed, allowedTeams]);
+    const keys = new Set<string>();
+    for (const f of feed.fixtures) if (f.team) keys.add(fixtureKey(f));
+    for (const r of feed.results) if (r.team) keys.add(fixtureKey(r));
+
+    // If section is filtered, only keep keys whose team name+league match allowed live teams
+    const filtered = allowedKeys
+      ? Array.from(keys).filter(k => {
+          const [name, league] = k.split('\0');
+          // Check if any allowed live team matches this feed entry
+          return liveTeams.some(lt => allowedKeys.has(leagueQualifiedSlug(lt)) && lt.name === name && lt.league === league);
+        })
+      : Array.from(keys);
+
+    return filtered
+      .map(k => {
+        const [name, league] = k.split('\0');
+        return { value: k, label: teamDisplayLabel(name, league, duplicateNames) };
+      })
+      .sort((a, b) => a.label.localeCompare(b.label));
+  }, [feed, allowedKeys, liveTeams, duplicateNames]);
 
   // Reset team dropdown when it's no longer in the available list
-  const effectiveTeam = selectedTeam && teamNames.includes(selectedTeam) ? selectedTeam : null;
+  const effectiveTeam = selectedTeam && teamOptions.some(o => o.value === selectedTeam) ? selectedTeam : null;
+
+  const isAllowed = (f: LiveFixture | LiveResult) => {
+    if (!allowedKeys) return true;
+    return liveTeams.some(lt => allowedKeys.has(leagueQualifiedSlug(lt)) && lt.name === f.team && lt.league === f.league);
+  };
 
   const fixtures = useMemo(() => {
     if (!feed) return [];
-    let list = allowedTeams
-      ? feed.fixtures.filter(f => allowedTeams.has(f.team))
-      : feed.fixtures;
+    let list = feed.fixtures.filter(isAllowed);
     if (effectiveTeam) {
-      list = list.filter((f) => f.team === effectiveTeam);
+      list = list.filter((f) => fixtureKey(f) === effectiveTeam);
     } else {
       const seen = new Set<string>();
       list = list.filter((f) => {
@@ -104,15 +125,13 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
       });
     }
     return [...list].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  }, [feed, effectiveTeam, allowedTeams]);
+  }, [feed, effectiveTeam, allowedKeys, liveTeams]);
 
   const results = useMemo(() => {
     if (!feed) return [];
-    let list = allowedTeams
-      ? feed.results.filter(r => allowedTeams.has(r.team))
-      : feed.results;
+    let list = feed.results.filter(isAllowed);
     if (effectiveTeam) {
-      list = list.filter((r) => r.team === effectiveTeam);
+      list = list.filter((r) => fixtureKey(r) === effectiveTeam);
     } else {
       const seen = new Set<string>();
       list = list.filter((r) => {
@@ -122,7 +141,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
       });
     }
     return [...list].sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
-  }, [feed, effectiveTeam, allowedTeams]);
+  }, [feed, effectiveTeam, allowedKeys, liveTeams]);
 
   if (!feed) {
     return (
@@ -150,7 +169,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
       <Select
         label="Filter by team"
         placeholder="All teams"
-        data={teamNames}
+        data={teamOptions}
         value={effectiveTeam}
         onChange={(value) => setSelectedTeam(value)}
         clearable
