@@ -7,5 +7,30 @@
 </head>
 <body>
   <script src="sveltia-cms.js"></script>
+  <script>
+    CMS.registerPreviewStyle(`
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        color: #1a1b1e;
+        padding: 1rem;
+        line-height: 1.55;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 4px;
+      }
+      h1, h2, h3, h4 {
+        margin-top: 0;
+        color: #212529;
+      }
+      a {
+        color: #e96a1a;
+      }
+      ul, ol {
+        padding-left: 1.5rem;
+      }
+    `, { raw: true });
+  </script>
 </body>
 </html>

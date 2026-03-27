@@ -10,8 +10,6 @@ collections:
   - name: settings
     label: "Site Settings"
     delete: false
-    editor:
-      preview: false
     files:
       - name: club
         label: "Club Details"
@@ -138,8 +136,6 @@ collections:
   - name: content
     label: "Content"
     delete: false
-    editor:
-      preview: false
     files:
       - name: news
         label: "News"
