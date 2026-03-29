@@ -3,16 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "copy:cms": "cp node_modules/@sveltia/cms/dist/sveltia-cms.js public/admin/sveltia-cms.js",
-    "dev": "npm run copy:cms && vite",
-    "build": "npm run copy:cms && tsc && vite build",
+    "dev": "vite",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@mantine/core": "^7.17.0",
     "@mantine/hooks": "^7.17.0",
-    "@sveltia/cms": "^0.151.1",
     "@tabler/icons-react": "^3.31.0",
+    "better-auth": "^1.5.6",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-router-dom": "^6.30.0"

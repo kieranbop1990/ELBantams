@@ -1,3 +1,4 @@
 node_modules
 dist
-website/public/admin/sveltia-cms.js
+.wrangler
+.dev.vars

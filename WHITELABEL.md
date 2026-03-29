@@ -2,25 +2,37 @@
 
 This site is designed to work for **any grassroots football club**. No coding required — just edit your club details and deploy.
 
-## Quick Start (3 Steps)
+## Quick Start
 
-1. **Fork** this repository on GitHub (click the "Fork" button)
-2. **Customise** your club details using the built-in editor at `/#/customise`
-3. **Deploy** by enabling GitHub Pages in your repo settings
-
-That's it — your site will be live within minutes.
+1. **Fork** this repository on GitHub
+2. **Set up Cloudflare Pages** — connect your fork, set build command to `cd website && npm ci && npm run build`, output to `website/dist`
+3. **Create a D1 database** — `npx wrangler d1 create elbantams-auth`, add the ID to `wrangler.toml`
+4. **Set secrets** in Cloudflare dashboard: `BETTER_AUTH_SECRET` (random string), `GITHUB_TOKEN` (repo write access)
+5. **Push to main** — your site deploys automatically
 
 ---
 
-## Using the Content Manager (CMS)
+## Member Login
 
-The site includes **Sveltia CMS**, a git-based content manager. Navigate to `/admin/` on your deployed site (or visit `/#/customise` to be redirected).
+The site supports email/password login for club members. Features:
 
-### What you can edit
+- **Members** can sign up and log in to access member-only content
+- **Admins** get access to the site admin panel at `/#/customise`
 
-| Collection | What you can edit |
-|------------|-------------------|
-| **Club Details** | Name, tagline, colours, socials, badge, address, about section, history |
+To promote a user to admin, run in D1 console:
+```sql
+UPDATE user SET role = 'admin' WHERE email = 'your-email@example.com';
+```
+
+---
+
+## Site Admin (Content Editor)
+
+Admin users can edit all site content at `/#/customise`. Changes are saved directly to the GitHub repo, triggering an automatic redeploy.
+
+| Tab | What you can edit |
+|-----|-------------------|
+| **Club** | Name, tagline, colours, socials, badge, address, about section, history |
 | **Teams** | Sections (e.g. Seniors, Youth), individual teams, managers, coaches |
 | **Committee** | Committee members and their roles |
 | **News** | News articles with optional expandable body text |
@@ -30,13 +42,11 @@ The site includes **Sveltia CMS**, a git-based content manager. Navigate to `/ad
 
 ### How it works
 
-1. Go to `/admin/` on your deployed site
-2. Log in with your **GitHub account** (you need write access to the repository)
+1. Log in as an admin user
+2. Click your name in the header, then **Site Admin**
 3. Edit content through the web-based forms
-4. Click **Save** — changes are committed directly to your repository
-5. GitHub Actions automatically rebuilds and deploys your site
-
-No need to download files, edit JSON, or push from the command line.
+4. Click **Apply Preview** to see changes live before saving
+5. Click **Save to Site** — changes are committed to GitHub and the site redeploys
 
 ---
 
@@ -62,14 +72,15 @@ The entire site theme updates automatically — buttons, badges, links, icons al
 
 ---
 
-## Deployment (GitHub Pages)
+## Deployment (Cloudflare Pages)
 
-This repo includes a GitHub Actions workflow that builds and deploys automatically.
+The site deploys to Cloudflare Pages with serverless Functions for authentication.
 
-1. Go to your fork's **Settings > Pages**
-2. Under **Source**, select **GitHub Actions**
-3. Push any change to `main` — the site builds and deploys within a few minutes
-4. Your site will be at `https://<your-username>.github.io/<repo-name>/`
+1. Connect your fork to **Cloudflare Pages** in the dashboard
+2. Set build command: `cd website && npm ci && npm run build`
+3. Set build output: `website/dist`
+4. Add D1 database binding (`DB`) and environment secrets (`BETTER_AUTH_SECRET`, `GITHUB_TOKEN`)
+5. Push to `main` — the site builds and deploys automatically
 
 ---
 

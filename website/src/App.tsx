@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppShell, Center, Loader, MantineProvider } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { loadAllData } from './data';
 import type { AppData } from './types';
 import { createClubTheme } from './theme';
+import { AuthProvider } from './context/AuthContext';
 import { SiteHeader } from './components/SiteHeader';
 import { SiteSidebar } from './components/SiteSidebar';
 import { SectionProvider } from './context/SectionContext';
+import { ProtectedRoute } from './components/ProtectedRoute';
 import { HomePage } from './pages/HomePage';
 import { AboutPage } from './pages/AboutPage';
 import { TeamsPage } from './pages/TeamsPage';
@@ -20,18 +22,34 @@ import { ContactPage } from './pages/ContactPage';
 import { FixturesResultsPage } from './pages/FixturesResultsPage';
 import { TeamPage } from './pages/TeamPage';
 import { CustomizePage } from './pages/CustomizePage';
+import { LoginPage } from './pages/LoginPage';
+import { SignUpPage } from './pages/SignUpPage';
 
 export default function App() {
-  const [data, setData] = useState<AppData | null>(null);
+  const [fetchedData, setFetchedData] = useState<AppData | null>(null);
+  const [editingData, setEditingData] = useState<AppData | null>(null);
+  const [previewData, setPreviewData] = useState<AppData | null>(null);
   const [opened, { toggle, close }] = useDisclosure();
 
   useEffect(() => {
-    loadAllData().then(setData);
+    loadAllData().then(setFetchedData);
   }, []);
+
+  const data = previewData ?? fetchedData;
 
   useEffect(() => {
     if (data) document.title = data.club.name;
   }, [data]);
+
+  const handleApplyPreview = useCallback((updated: AppData) => {
+    setPreviewData(updated);
+    setEditingData(updated);
+  }, []);
+
+  const handleResetPreview = useCallback(() => {
+    setPreviewData(null);
+    setEditingData(null);
+  }, []);
 
   if (!data) {
     return (
@@ -45,6 +63,7 @@ export default function App() {
 
   return (
     <MantineProvider theme={clubTheme}>
+    <AuthProvider>
     <SectionProvider>
     <HashRouter>
       <AppShell
@@ -79,13 +98,27 @@ export default function App() {
             <Route path="/gallery" element={<GalleryPage items={data.gallery} />} />
             <Route path="/matchday" element={<MatchdayPage items={data.matchday} club={data.club} />} />
             <Route path="/contact" element={<ContactPage club={data.club} />} />
-            <Route path="/customise" element={<CustomizePage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/customise" element={
+              <ProtectedRoute requireAdmin>
+                <CustomizePage
+                  originalData={fetchedData!}
+                  editingData={editingData}
+                  onEditingChange={setEditingData}
+                  onApplyPreview={handleApplyPreview}
+                  onResetPreview={handleResetPreview}
+                  previewActive={previewData !== null}
+                />
+              </ProtectedRoute>
+            } />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell.Main>
       </AppShell>
     </HashRouter>
     </SectionProvider>
+    </AuthProvider>
     </MantineProvider>
   );
 }

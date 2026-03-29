@@ -1,0 +1,8 @@
+name = "elbantams"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "website/dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "elbantams-auth"
+database_id = "placeholder-create-via-wrangler-d1-create"
