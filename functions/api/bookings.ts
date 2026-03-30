@@ -1,0 +1,145 @@
+import { createAuth } from "../lib/auth";
+import { ensureTables } from "../lib/ensure-tables";
+
+interface Env {
+  DB: D1Database;
+  BETTER_AUTH_SECRET: string;
+}
+
+type BookingRow = {
+  id: string;
+  date: string;
+  timeStart: string;
+  timeEnd: string;
+  teamName: string;
+  format: string;
+  notes: string | null;
+  pitchName: string;
+  pitchId: string;
+  createdAt: number;
+  requestId: string | null;
+};
+
+async function requireAuth(context: EventContext<Env, string, unknown>) {
+  await ensureTables(context.env.DB);
+  const auth = createAuth(context.env);
+  const session = await auth.api.getSession({ headers: context.request.headers });
+  if (!session) {
+    return {
+      error: new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      }),
+    } as const;
+  }
+  return { session } as const;
+}
+
+async function requireAdmin(context: EventContext<Env, string, unknown>) {
+  await ensureTables(context.env.DB);
+  const auth = createAuth(context.env);
+  const session = await auth.api.getSession({ headers: context.request.headers });
+  if (!session) {
+    return {
+      error: new Response(JSON.stringify({ error: "Not authenticated" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      }),
+    } as const;
+  }
+  const role = (session.user as Record<string, unknown>).role;
+  if (role !== "admin") {
+    return {
+      error: new Response(JSON.stringify({ error: "Admin access required" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      }),
+    } as const;
+  }
+  return { session } as const;
+}
+
+function json(res: unknown, init?: ResponseInit) {
+  return new Response(JSON.stringify(res), {
+    ...(init ?? {}),
+    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+  });
+}
+
+function nowMs() {
+  return Date.now();
+}
+
+export const onRequestGet: PagesFunction<Env> = async (context) => {
+  const result = await requireAuth(context);
+  if ("error" in result) return result.error;
+
+  const url = new URL(context.request.url);
+  const date = url.searchParams.get("date");   // YYYY-MM-DD (single day)
+  const month = url.searchParams.get("month"); // YYYY-MM
+
+  let query = `
+    SELECT b.id, b.date, b.timeStart, b.timeEnd, b.teamName, b.format, b.notes,
+           b.createdAt, b.requestId, p.name as pitchName, p.id as pitchId
+    FROM booking b
+    JOIN pitch p ON b.pitchId = p.id
+  `;
+  const binds: string[] = [];
+
+  if (date) {
+    query += ` WHERE b.date = ?`;
+    binds.push(date);
+  } else if (month) {
+    query += ` WHERE b.date LIKE ?`;
+    binds.push(`${month}-%`);
+  }
+
+  query += ` ORDER BY b.date ASC, b.timeStart ASC`;
+
+  const rows = await context.env.DB
+    .prepare(query)
+    .bind(...binds)
+    .all<BookingRow>();
+
+  const bookings = rows.results.map((r) => ({
+    id: r.id,
+    date: r.date,
+    timeStart: r.timeStart,
+    timeEnd: r.timeEnd,
+    teamName: r.teamName,
+    format: r.format,
+    notes: r.notes ?? undefined,
+    pitchName: r.pitchName,
+    pitchId: r.pitchId,
+    createdAt: r.createdAt,
+    requestId: r.requestId ?? undefined,
+  }));
+
+  return json({ bookings });
+};
+
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  const result = await requireAdmin(context);
+  if ("error" in result) return result.error;
+
+  const url = new URL(context.request.url);
+  const id = url.searchParams.get("id") ?? "";
+  if (!id) return json({ error: "id query param required" }, { status: 400 });
+
+  const ts = nowMs();
+
+  // Reset associated booking_request back to pending, then delete booking
+  await context.env.DB.batch([
+    context.env.DB
+      .prepare(
+        `UPDATE booking_request SET status = 'pending', updatedAt = ?
+         WHERE id = (SELECT requestId FROM booking WHERE id = ?)`
+      )
+      .bind(ts, id),
+    context.env.DB
+      .prepare(`DELETE FROM booking WHERE id = ?`)
+      .bind(id),
+  ]);
+
+  return json({ ok: true });
+};

@@ -1,6 +1,6 @@
 import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button } from '@mantine/core';
 import { useLocation, Link } from 'react-router-dom';
-import { IconCalendar, IconSettings, IconUsers } from '@tabler/icons-react';
+import { IconCalendar, IconClipboardList, IconSettings, IconUsers } from '@tabler/icons-react';
 import type { Club, NavItem, TeamFeed, TeamSection } from '../types';
 import { useSection } from '../context/SectionContext';
 import { useAuth } from '../context/AuthContext';
@@ -63,7 +63,7 @@ interface Props {
 export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props) {
   const { pathname } = useLocation();
   const { activeSection, setActiveSection } = useSection();
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, isManager } = useAuth();
 
   const navItems = club.nav ?? DEFAULT_NAV;
 
@@ -133,8 +133,32 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
         </Text>
       </Stack>
 
-      {isAdmin && (
+      {user && (
         <div style={{ marginTop: 'auto' }}>
+          <Divider mx="md" mb="xs" />
+          <NavLink
+            component={Link}
+            to="/schedule"
+            label="Pitch Schedule"
+            leftSection={<IconCalendar size={16} />}
+            active={pathname === '/schedule'}
+            onClick={onNavClick}
+          />
+          {(isManager || isAdmin) && (
+            <NavLink
+              component={Link}
+              to="/bookings"
+              label="Request a Pitch"
+              leftSection={<IconClipboardList size={16} />}
+              active={pathname === '/bookings'}
+              onClick={onNavClick}
+            />
+          )}
+        </div>
+      )}
+
+      {isAdmin && (
+        <div style={{ marginTop: user ? undefined : 'auto' }}>
           <Divider mx="md" mb="xs" />
           <NavLink
             component={Link}
@@ -150,6 +174,14 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
             label="Manage Users"
             leftSection={<IconUsers size={16} />}
             active={pathname === '/admin/users'}
+            onClick={onNavClick}
+          />
+          <NavLink
+            component={Link}
+            to="/admin/bookings"
+            label="Booking Requests"
+            leftSection={<IconClipboardList size={16} />}
+            active={pathname === '/admin/bookings'}
             onClick={onNavClick}
           />
         </div>

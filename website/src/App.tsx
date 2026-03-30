@@ -25,6 +25,9 @@ import { CustomizePage } from './pages/CustomizePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { PitchBookingPage } from './pages/PitchBookingPage';
+import { BookingAdminPage } from './pages/BookingAdminPage';
+import { PitchSchedulePage } from './pages/PitchSchedulePage';
 
 export default function App() {
   const [fetchedData, setFetchedData] = useState<AppData | null>(null);
@@ -116,6 +119,21 @@ export default function App() {
                   onResetPreview={handleResetPreview}
                   previewActive={previewData !== null}
                 />
+              </ProtectedRoute>
+            } />
+            <Route path="/bookings" element={
+              <ProtectedRoute requireManager>
+                <PitchBookingPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/bookings" element={
+              <ProtectedRoute requireAdmin>
+                <BookingAdminPage clubFeedSlug={data.club.clubFeedSlug} />
+              </ProtectedRoute>
+            } />
+            <Route path="/schedule" element={
+              <ProtectedRoute>
+                <PitchSchedulePage />
               </ProtectedRoute>
             } />
             <Route path="*" element={<Navigate to="/" replace />} />

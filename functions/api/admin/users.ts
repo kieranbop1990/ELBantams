@@ -66,9 +66,9 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
     });
   }
 
-  const validRoles = ["member", "admin"];
+  const validRoles = ["member", "admin", "manager"];
   if (!validRoles.includes(role)) {
-    return new Response(JSON.stringify({ error: "Invalid role. Must be 'member' or 'admin'" }), {
+    return new Response(JSON.stringify({ error: "Invalid role. Must be 'member', 'admin', or 'manager'" }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });

@@ -78,6 +78,7 @@ export function AdminUsersPage() {
                   onChange={(val) => val && handleRoleChange(user.id, val)}
                   data={[
                     { value: 'admin', label: 'Admin' },
+                    { value: 'manager', label: 'Manager' },
                     { value: 'member', label: 'Member' },
                   ]}
                   size="xs"

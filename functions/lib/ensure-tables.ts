@@ -13,6 +13,25 @@ const TABLE_STATEMENTS = [
   `CREATE INDEX IF NOT EXISTS "idx_team_section_sortOrder" ON "team_section" ("sortOrder")`,
   `CREATE TABLE IF NOT EXISTS "team" ("id" TEXT PRIMARY KEY NOT NULL, "sectionId" TEXT NOT NULL REFERENCES "team_section"("id") ON DELETE CASCADE, "name" TEXT NOT NULL, "description" TEXT NOT NULL, "manager" TEXT NOT NULL, "coach" TEXT NOT NULL, "contact" TEXT NOT NULL, "photo" TEXT, "slug" TEXT, "sidebar" INTEGER NOT NULL DEFAULT 0, "managerLabel" TEXT, "coachLabel" TEXT, "sortOrder" INTEGER NOT NULL DEFAULT 0, "createdAt" INTEGER NOT NULL, "updatedAt" INTEGER NOT NULL)`,
   `CREATE INDEX IF NOT EXISTS "idx_team_sectionId_sortOrder" ON "team" ("sectionId", "sortOrder")`,
+  `CREATE TABLE IF NOT EXISTS "pitch" ("id" TEXT PRIMARY KEY NOT NULL, "name" TEXT NOT NULL, "formats" TEXT NOT NULL, "description" TEXT, "active" INTEGER NOT NULL DEFAULT 1)`,
+  `CREATE TABLE IF NOT EXISTS "booking_request" ("id" TEXT PRIMARY KEY NOT NULL, "userId" TEXT NOT NULL REFERENCES "user"("id") ON DELETE CASCADE, "teamName" TEXT NOT NULL, "date" TEXT NOT NULL, "timeStart" TEXT NOT NULL, "timeEnd" TEXT NOT NULL, "format" TEXT NOT NULL, "notes" TEXT, "status" TEXT NOT NULL DEFAULT 'pending', "declineReason" TEXT, "createdAt" INTEGER NOT NULL, "updatedAt" INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS "idx_booking_request_userId" ON "booking_request" ("userId")`,
+  `CREATE INDEX IF NOT EXISTS "idx_booking_request_date" ON "booking_request" ("date")`,
+  `CREATE INDEX IF NOT EXISTS "idx_booking_request_status" ON "booking_request" ("status")`,
+  `CREATE TABLE IF NOT EXISTS "booking" ("id" TEXT PRIMARY KEY NOT NULL, "requestId" TEXT REFERENCES "booking_request"("id") ON DELETE SET NULL, "pitchId" TEXT NOT NULL REFERENCES "pitch"("id"), "date" TEXT NOT NULL, "timeStart" TEXT NOT NULL, "timeEnd" TEXT NOT NULL, "teamName" TEXT NOT NULL, "format" TEXT NOT NULL, "notes" TEXT, "createdAt" INTEGER NOT NULL)`,
+  `CREATE INDEX IF NOT EXISTS "idx_booking_pitchId_date" ON "booking" ("pitchId", "date")`,
+  `CREATE INDEX IF NOT EXISTS "idx_booking_date" ON "booking" ("date")`,
+];
+
+const PITCH_SEED_STATEMENTS = [
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_1', 'Pitch 1', '["11v11"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_2', 'Pitch 2', '["11v11","9v9"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_3', 'Pitch 3', '["11v11","9v9"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_4', 'Pitch 4', '["11v11","7v7"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_5', 'Pitch 5', '["9v9","7v7"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_6', 'Pitch 6', '["7v7"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_7', 'Pitch 7', '["5v5"]', 1)`,
+  `INSERT OR IGNORE INTO "pitch" ("id", "name", "formats", "active") VALUES ('pitch_8', 'Pitch 8', '["5v5"]', 1)`,
 ];
 
 let ensureTablesPromise: Promise<void> | null = null;
@@ -21,6 +40,9 @@ export const ensureTables = (db: D1Database): Promise<void> => {
   if (!ensureTablesPromise) {
     ensureTablesPromise = (async () => {
       for (const sql of TABLE_STATEMENTS) {
+        await db.exec(sql);
+      }
+      for (const sql of PITCH_SEED_STATEMENTS) {
         await db.exec(sql);
       }
     })();

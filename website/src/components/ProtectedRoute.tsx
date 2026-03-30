@@ -6,10 +6,11 @@ import type { ReactNode } from 'react';
 interface Props {
   children: ReactNode;
   requireAdmin?: boolean;
+  requireManager?: boolean;
 }
 
-export function ProtectedRoute({ children, requireAdmin }: Props) {
-  const { user, loading, isAdmin } = useAuth();
+export function ProtectedRoute({ children, requireAdmin, requireManager }: Props) {
+  const { user, loading, isAdmin, isManager } = useAuth();
 
   if (loading) {
     return <Center h={200}><Loader /></Center>;
@@ -20,6 +21,10 @@ export function ProtectedRoute({ children, requireAdmin }: Props) {
   }
 
   if (requireAdmin && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (requireManager && !isManager && !isAdmin) {
     return <Navigate to="/" replace />;
   }
 
