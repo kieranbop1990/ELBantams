@@ -1,5 +1,5 @@
 import { Burger, Group, Text, ActionIcon, Badge, Box, Button, Menu } from '@mantine/core';
-import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter, IconUser, IconLogout, IconSettings } from '@tabler/icons-react';
+import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter, IconUser, IconLogout, IconSettings, IconUsers } from '@tabler/icons-react';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Club, TeamSection } from '../types';
 import { useSection } from '../context/SectionContext';
@@ -145,12 +145,20 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             </Menu.Target>
             <Menu.Dropdown>
               {isAdmin && (
-                <Menu.Item
-                  leftSection={<IconSettings size={14} />}
-                  onClick={() => navigate('/customise')}
-                >
-                  Site Admin
-                </Menu.Item>
+                <>
+                  <Menu.Item
+                    leftSection={<IconSettings size={14} />}
+                    onClick={() => navigate('/customise')}
+                  >
+                    Site Admin
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconUsers size={14} />}
+                    onClick={() => navigate('/admin/users')}
+                  >
+                    Manage Users
+                  </Menu.Item>
+                </>
               )}
               <Menu.Item
                 leftSection={<IconLogout size={14} />}

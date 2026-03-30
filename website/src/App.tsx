@@ -24,6 +24,7 @@ import { TeamPage } from './pages/TeamPage';
 import { CustomizePage } from './pages/CustomizePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 
 export default function App() {
   const [fetchedData, setFetchedData] = useState<AppData | null>(null);
@@ -100,6 +101,11 @@ export default function App() {
             <Route path="/contact" element={<ContactPage club={data.club} />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignUpPage />} />
+            <Route path="/admin/users" element={
+              <ProtectedRoute requireAdmin>
+                <AdminUsersPage />
+              </ProtectedRoute>
+            } />
             <Route path="/customise" element={
               <ProtectedRoute requireAdmin>
                 <CustomizePage

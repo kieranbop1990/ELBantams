@@ -16,5 +16,22 @@ export function createAuth(env: { DB: D1Database; BETTER_AUTH_SECRET: string }) 
         },
       },
     },
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            const count = await env.DB
+              .prepare('SELECT COUNT(*) as c FROM "user"')
+              .first<{ c: number }>();
+            if (count && count.c === 1) {
+              await env.DB
+                .prepare('UPDATE "user" SET role = ? WHERE id = ?')
+                .bind("admin", user.id)
+                .run();
+            }
+          },
+        },
+      },
+    },
   });
 }
