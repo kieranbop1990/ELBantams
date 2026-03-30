@@ -80,6 +80,10 @@ async function runMigrations(db: D1Database) {
 }
 
 export const onRequest: PagesFunction<Env> = async (context) => {
-  await runMigrations(context.env.DB);
+  try {
+    await runMigrations(context.env.DB);
+  } catch (e) {
+    console.error("Migration error:", e);
+  }
   return context.next();
 };
