@@ -22,7 +22,7 @@ export function AboutPage({ club }: Props) {
           {club.about.map((item, i) => (
             <Paper key={i} p="md" radius="md" withBorder>
               <Group align="flex-start" gap="md" wrap="nowrap">
-                <ThemeIcon color="orange" variant="light" size="lg" radius="md">
+                <ThemeIcon variant="light" size="lg" radius="md">
                   {tablerIcon(item.icon)}
                 </ThemeIcon>
                 <div>

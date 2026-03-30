@@ -1,8 +1,9 @@
 import { NavLink, Stack, Text, Divider, Badge, Group, Paper, Button } from '@mantine/core';
 import { useLocation, Link } from 'react-router-dom';
-import { IconCalendar } from '@tabler/icons-react';
+import { IconCalendar, IconSettings, IconUsers } from '@tabler/icons-react';
 import type { Club, NavItem, TeamFeed, TeamSection } from '../types';
 import { useSection } from '../context/SectionContext';
+import { useAuth } from '../context/AuthContext';
 import { tablerIcon } from '../utils/icons';
 
 const DEFAULT_NAV: NavItem[] = [
@@ -34,7 +35,7 @@ function NextTeamFixture({ feed, label }: { feed: TeamFeed; label: string }) {
         {label}
       </Text>
       <Paper mx="md" p="sm" withBorder radius="md">
-        <Badge color="orange" variant="light" size="xs" mb="xs">{next.division}</Badge>
+        <Badge variant="light" size="xs" mb="xs">{next.division}</Badge>
         <Text fw={700} size="sm" ta="center" lh={1.3}>
           {next.home_team}
         </Text>
@@ -62,6 +63,7 @@ interface Props {
 export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props) {
   const { pathname } = useLocation();
   const { activeSection, setActiveSection } = useSection();
+  const { isAdmin } = useAuth();
 
   const navItems = club.nav ?? DEFAULT_NAV;
 
@@ -78,7 +80,6 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
         <Button
           size="compact-xs"
           variant={activeSection === 'all' ? 'filled' : 'outline'}
-          color="orange"
           onClick={() => setActiveSection('all')}
         >
           All
@@ -88,8 +89,7 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
             key={s.id}
             size="compact-xs"
             variant={activeSection === s.id ? 'filled' : 'outline'}
-            color="orange"
-            onClick={() => setActiveSection(s.id)}
+              onClick={() => setActiveSection(s.id)}
           >
             {s.name} {s.subtitle}
           </Button>
@@ -111,7 +111,6 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
           leftSection={tablerIcon(icon, 16)}
           active={to === '/' ? pathname === '/' : pathname.startsWith(to)}
           onClick={onNavClick}
-          color="orange"
         />
       ))}
 
@@ -125,7 +124,7 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
       </Text>
       <Stack gap={4} px="md" pb="md">
         <Text size="xs">
-          <Text component="a" href={`mailto:${club.email}`} c="orange.6" size="xs">
+          <Text component="a" href={`mailto:${club.email}`} c="var(--mantine-primary-color-filled)" size="xs">
             {club.email}
           </Text>
         </Text>
@@ -133,6 +132,28 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
           {club.address.line1}, {club.address.line2}, {club.address.postcode}
         </Text>
       </Stack>
+
+      {isAdmin && (
+        <div style={{ marginTop: 'auto' }}>
+          <Divider mx="md" mb="xs" />
+          <NavLink
+            component={Link}
+            to="/customise"
+            label="Customise"
+            leftSection={<IconSettings size={16} />}
+            active={pathname === '/customise'}
+            onClick={onNavClick}
+          />
+          <NavLink
+            component={Link}
+            to="/admin/users"
+            label="Manage Users"
+            leftSection={<IconUsers size={16} />}
+            active={pathname === '/admin/users'}
+            onClick={onNavClick}
+          />
+        </div>
+      )}
     </Stack>
   );
 }

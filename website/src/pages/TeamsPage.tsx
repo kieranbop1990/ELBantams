@@ -1,9 +1,10 @@
+import { useMemo } from 'react';
 import { Title, Text, SimpleGrid, Paper, Badge, Button, Group, Stack, Image, Center, Divider } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import { IconCamera, IconCalendar } from '@tabler/icons-react';
 import type { TeamsData, LiveTeam } from '../types';
 import { useSection } from '../context/SectionContext';
-import { liveTeamsForTeam } from '../utils/teamMatching';
+import { liveTeamsForTeam, findDuplicateTeamNames, teamDisplayLabel } from '../utils/teamMatching';
 
 interface Props {
   teams: TeamsData;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['teams'][0]; liveTeams: LiveTeam[] }) {
+  const duplicateNames = useMemo(() => findDuplicateTeamNames(liveTeams), [liveTeams]);
   return (
     <Paper p="md" radius="md" withBorder>
       {team.photo ? (
@@ -35,16 +37,15 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
       </Text>
 
       <Group gap="xs">
-        <Button component={Link} to="/register" size="xs" color="orange">Register</Button>
-        <Button component={Link} to="/contact" size="xs" variant="outline" color="orange">Contact</Button>
+        <Button component={Link} to="/register" size="xs">Register</Button>
+        <Button component={Link} to="/contact" size="xs" variant="outline">Contact</Button>
         {liveTeams.length === 1 &&
           <Button
             component={Link}
-            to={`/teams/${liveTeams[0].slug}`}
+            to={`/teams/${liveTeams[0].league}/${liveTeams[0].slug}`}
             size="xs"
             variant="light"
-            color="orange"
-            leftSection={<IconCalendar size={12} />}
+                       leftSection={<IconCalendar size={12} />}
           >
             Results & Fixtures
           </Button>
@@ -58,16 +59,15 @@ function TeamCard({ team, liveTeams }: { team: Props['teams']['sections'][0]['te
           <Stack gap={4}>
             {liveTeams.map((lt) => (
               <Button
-                key={lt.slug}
+                key={`${lt.league}/${lt.slug}`}
                 component={Link}
-                to={`/teams/${lt.slug}`}
+                to={`/teams/${lt.league}/${lt.slug}`}
                 size="xs"
                 variant="light"
-                color="orange"
-                leftSection={<IconCalendar size={12} />}
+                               leftSection={<IconCalendar size={12} />}
                 fullWidth
               >
-                {lt.name}
+                {teamDisplayLabel(lt.name, lt.league, duplicateNames)}
               </Button>
             ))}
           </Stack>
@@ -91,7 +91,7 @@ export function TeamsPage({ teams, liveTeams }: Props) {
         <div key={si}>
           <Group mb="md" align="center">
             <Text fw={700} size="lg">{section.name}</Text>
-            <Badge color="orange" variant="light">{section.subtitle}</Badge>
+            <Badge variant="light">{section.subtitle}</Badge>
           </Group>
 
           <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="md">
