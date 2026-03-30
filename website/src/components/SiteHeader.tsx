@@ -1,8 +1,10 @@
-import { Burger, Group, Text, ActionIcon, Badge, Box } from '@mantine/core';
-import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter } from '@tabler/icons-react';
-import { Link } from 'react-router-dom';
+import { Burger, Group, Text, ActionIcon, Badge, Box, Button, Menu } from '@mantine/core';
+import { IconBrandFacebook, IconBrandInstagram, IconBrandTwitter, IconUser, IconLogout, IconSettings, IconUsers } from '@tabler/icons-react';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Club, TeamSection } from '../types';
 import { useSection } from '../context/SectionContext';
+import { useAuth } from '../context/AuthContext';
+import { signOut } from '../auth-client';
 import { tablerIcon } from '../utils/icons';
 
 interface Props {
@@ -13,11 +15,12 @@ interface Props {
 }
 
 export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
-  // Use tagShort if provided, otherwise strip a trailing " FC" suffix
   const clubShort = club.tagShort ?? club.name.replace(/ FC$/i, '');
   const showFcSuffix = !club.tagShort && / FC$/i.test(club.name);
 
   const { activeSection, setActiveSection } = useSection();
+  const { user, isAdmin, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const activeData = activeSection !== 'all'
     ? sections.find(s => s.id === activeSection)
     : null;
@@ -25,6 +28,11 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
   const logosToShow = activeSection === 'all'
     ? sections.filter(s => s.logo)
     : sections.filter(s => s.id === activeSection && s.logo);
+
+  const handleLogout = async () => {
+    await signOut();
+    window.location.reload();
+  };
 
   return (
     <Group h="100%" px="md" justify="space-between" wrap="nowrap">
@@ -115,6 +123,53 @@ export function SiteHeader({ club, sections, navOpen, onNavToggle }: Props) {
             />
           ))}
         </Group>
+
+        {!authLoading && !user && (
+          <Button
+            component={Link}
+            to="/login"
+            variant="subtle"
+            size="compact-sm"
+            leftSection={<IconUser size={14} />}
+          >
+            Login
+          </Button>
+        )}
+
+        {!authLoading && user && (
+          <Menu shadow="md" width={200}>
+            <Menu.Target>
+              <Button variant="subtle" size="compact-sm" leftSection={<IconUser size={14} />}>
+                {user.name}
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              {isAdmin && (
+                <>
+                  <Menu.Item
+                    leftSection={<IconSettings size={14} />}
+                    onClick={() => navigate('/customise')}
+                  >
+                    Site Admin
+                  </Menu.Item>
+                  <Menu.Item
+                    leftSection={<IconUsers size={14} />}
+                    onClick={() => navigate('/admin/users')}
+                  >
+                    Manage Users
+                  </Menu.Item>
+                </>
+              )}
+              <Menu.Item
+                leftSection={<IconLogout size={14} />}
+                onClick={handleLogout}
+                color="red"
+              >
+                Logout
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
+        )}
       </Group>
     </Group>
   );

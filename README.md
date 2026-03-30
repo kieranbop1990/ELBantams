@@ -18,6 +18,8 @@ This site is **whitelabel** — any grassroots football club can fork it and mak
 6. Enable **GitHub Pages** (Settings > Pages > Source: GitHub Actions)
 7. Push to `main` — your site deploys automatically
 
+alternatively this can be deployed on CloudFlare Pages with workers for a serverless authentication solution.
+
 See [WHITELABEL.md](WHITELABEL.md) for the full guide, including the branch-per-club model, live fixture feeds, and manual JSON editing.
 
 ## Tech Stack
