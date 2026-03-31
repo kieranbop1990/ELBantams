@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Stack, Title, Text, Table, Badge, Divider, Group, Loader, Center, Alert, Tabs } from '@mantine/core';
+import { Stack, Title, Text, Table, Badge, Divider, Group, Loader, Center, Alert, Tabs, Box } from '@mantine/core';
+import { DatePicker } from '@mantine/dates';
 import { useAuth } from '../context/AuthContext';
 
 interface BookingRequest {
@@ -62,7 +63,7 @@ export function PitchSchedulePage() {
   const [error, setError] = useState('');
 
   const today = new Date().toISOString().slice(0, 10);
-  const [dayDate, setDayDate] = useState(today);
+  const [selectedDate, setSelectedDate] = useState<string | null>(today);
   const [dayBookings, setDayBookings] = useState<Booking[]>([]);
   const [dayPitches, setDayPitches] = useState<Pitch[]>([]);
   const [dayLoading, setDayLoading] = useState(false);
@@ -88,18 +89,21 @@ export function PitchSchedulePage() {
   }, [isManager, isAdmin]);
 
   useEffect(() => {
+    fetch('/api/pitches')
+      .then(r => r.ok ? r.json() as Promise<{ pitches: Pitch[] }> : Promise.reject())
+      .then(d => setDayPitches(d.pitches))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!selectedDate) return;
     setDayLoading(true);
-    Promise.all([
-      fetch(`/api/bookings?date=${dayDate}`)
-        .then(r => r.ok ? r.json() as Promise<{ bookings: Booking[] }> : Promise.reject())
-        .then(d => setDayBookings(d.bookings))
-        .catch(() => setDayBookings([])),
-      fetch('/api/pitches')
-        .then(r => r.ok ? r.json() as Promise<{ pitches: Pitch[] }> : Promise.reject())
-        .then(d => setDayPitches(d.pitches))
-        .catch(() => {}),
-    ]).finally(() => setDayLoading(false));
-  }, [dayDate]);
+    fetch(`/api/bookings?date=${selectedDate}`)
+      .then(r => r.ok ? r.json() as Promise<{ bookings: Booking[] }> : Promise.reject())
+      .then(d => setDayBookings(d.bookings))
+      .catch(() => setDayBookings([]))
+      .finally(() => setDayLoading(false));
+  }, [selectedDate]);
 
   if (loading) {
     return <Center h={200}><Loader /></Center>;
@@ -107,19 +111,146 @@ export function PitchSchedulePage() {
 
   const upcoming = bookings.filter(b => b.date >= today);
   const past = bookings.filter(b => b.date < today);
+  const bookedDates = new Set(bookings.map(b => b.date));
 
   return (
-    <Stack maw={1000} mx="auto">
+    <Stack maw={1100} mx="auto">
       <Title order={2}>Pitch Schedule</Title>
       <Text size="sm" c="dimmed">All confirmed pitch bookings at the club.</Text>
 
       {error && <Alert color="red" variant="light">{error}</Alert>}
 
-      <Tabs defaultValue="list">
+      <Tabs defaultValue="calendar">
         <Tabs.List>
+          <Tabs.Tab value="calendar">Calendar View</Tabs.Tab>
           <Tabs.Tab value="list">List View</Tabs.Tab>
-          <Tabs.Tab value="day">Day View</Tabs.Tab>
         </Tabs.List>
+
+        <Tabs.Panel value="calendar" pt="md">
+          <Group align="flex-start" gap="xl" wrap="wrap">
+            <DatePicker
+              value={selectedDate}
+              onChange={setSelectedDate}
+              getDayProps={(date) => bookedDates.has(date)
+                ? { style: { fontWeight: 700, textDecoration: 'underline dotted' } }
+                : {}
+              }
+            />
+
+            <Stack flex={1} style={{ minWidth: 300 }}>
+              {selectedDate && (
+                <Text size="sm" fw={500}>{formatDate(selectedDate)}</Text>
+              )}
+
+              {dayLoading ? (
+                <Center h={80}><Loader size="sm" /></Center>
+              ) : (
+                <Box style={{ overflowX: 'auto' }}>
+                  <Box style={{ minWidth: 420 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr', marginBottom: 4 }}>
+                      <div />
+                      <div style={{ position: 'relative', height: 20 }}>
+                        {HOUR_LABELS.map(h => (
+                          <span
+                            key={h}
+                            style={{
+                              position: 'absolute',
+                              left: `${((h - DAY_START) / TOTAL_HOURS) * 100}%`,
+                              fontSize: 10,
+                              color: '#868e96',
+                              transform: 'translateX(-50%)',
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {`${h}:00`}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    {dayPitches.map((pitch, idx) => {
+                      const pitchBookings = dayBookings.filter(b => b.pitchId === pitch.id);
+                      return (
+                        <div
+                          key={pitch.id}
+                          style={{
+                            display: 'grid',
+                            gridTemplateColumns: '110px 1fr',
+                            borderTop: idx === 0 ? '1px solid #dee2e6' : undefined,
+                            borderBottom: '1px solid #dee2e6',
+                          }}
+                        >
+                          <div style={{ padding: '8px 8px 8px 0', display: 'flex', alignItems: 'center' }}>
+                            <Text size="xs" fw={600} lineClamp={2}>{pitch.name}</Text>
+                          </div>
+                          <div
+                            style={{
+                              position: 'relative',
+                              height: 44,
+                              background: idx % 2 === 0 ? '#f8f9fa' : '#fff',
+                              borderLeft: '1px solid #dee2e6',
+                            }}
+                          >
+                            {HOUR_LABELS.slice(1, -1).map(h => (
+                              <div
+                                key={h}
+                                style={{
+                                  position: 'absolute',
+                                  left: `${((h - DAY_START) / TOTAL_HOURS) * 100}%`,
+                                  top: 0,
+                                  bottom: 0,
+                                  width: 1,
+                                  background: '#e9ecef',
+                                }}
+                              />
+                            ))}
+                            {pitchBookings.map(bkg => {
+                              const left = timeToFraction(bkg.timeStart) * 100;
+                              const right = timeToFraction(bkg.timeEnd) * 100;
+                              const width = right - left;
+                              return (
+                                <div
+                                  key={bkg.id}
+                                  title={`${bkg.teamName} · ${bkg.timeStart}–${bkg.timeEnd} · ${bkg.format}`}
+                                  style={{
+                                    position: 'absolute',
+                                    left: `${left}%`,
+                                    width: `${width}%`,
+                                    top: 5,
+                                    bottom: 5,
+                                    background: 'var(--mantine-primary-color-filled)',
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '0 5px',
+                                    cursor: 'default',
+                                  }}
+                                >
+                                  <Text size="xs" c="white" truncate fw={500}>
+                                    {bkg.teamName}
+                                  </Text>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {dayPitches.length === 0 && (
+                      <Text size="sm" c="dimmed">No pitch data available.</Text>
+                    )}
+
+                    {dayPitches.length > 0 && dayBookings.length === 0 && (
+                      <Text size="sm" c="dimmed" mt="sm">No bookings on this date.</Text>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </Stack>
+          </Group>
+        </Tabs.Panel>
 
         <Tabs.Panel value="list" pt="md">
           <Stack>
@@ -229,132 +360,6 @@ export function PitchSchedulePage() {
               <Group justify="center" py="xl">
                 <Text c="dimmed">No bookings have been confirmed yet.</Text>
               </Group>
-            )}
-          </Stack>
-        </Tabs.Panel>
-
-        <Tabs.Panel value="day" pt="md">
-          <Stack>
-            <Group align="center">
-              <Text size="sm" fw={500}>Select date:</Text>
-              <input
-                type="date"
-                value={dayDate}
-                onChange={e => setDayDate(e.currentTarget.value)}
-                style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid #ced4da', fontSize: 14 }}
-              />
-              <Text size="sm" c="dimmed">{formatDate(dayDate)}</Text>
-            </Group>
-
-            {dayLoading ? (
-              <Center h={120}><Loader size="sm" /></Center>
-            ) : (
-              <div style={{ overflowX: 'auto' }}>
-                <div style={{ minWidth: 680 }}>
-                  {/* Time axis header */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', marginBottom: 4 }}>
-                    <div />
-                    <div style={{ position: 'relative', height: 20 }}>
-                      {HOUR_LABELS.map(h => (
-                        <span
-                          key={h}
-                          style={{
-                            position: 'absolute',
-                            left: `${((h - DAY_START) / TOTAL_HOURS) * 100}%`,
-                            fontSize: 10,
-                            color: '#868e96',
-                            transform: 'translateX(-50%)',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {`${h}:00`}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Pitch rows */}
-                  {dayPitches.map((pitch, idx) => {
-                    const pitchBookings = dayBookings.filter(b => b.pitchId === pitch.id);
-                    return (
-                      <div
-                        key={pitch.id}
-                        style={{
-                          display: 'grid',
-                          gridTemplateColumns: '120px 1fr',
-                          borderTop: idx === 0 ? '1px solid #dee2e6' : undefined,
-                          borderBottom: '1px solid #dee2e6',
-                        }}
-                      >
-                        <div style={{ padding: '8px 8px 8px 0', display: 'flex', alignItems: 'center' }}>
-                          <Text size="xs" fw={600} lineClamp={2}>{pitch.name}</Text>
-                        </div>
-                        <div
-                          style={{
-                            position: 'relative',
-                            height: 44,
-                            background: idx % 2 === 0 ? '#f8f9fa' : '#fff',
-                            borderLeft: '1px solid #dee2e6',
-                          }}
-                        >
-                          {/* Hour grid lines */}
-                          {HOUR_LABELS.slice(1, -1).map(h => (
-                            <div
-                              key={h}
-                              style={{
-                                position: 'absolute',
-                                left: `${((h - DAY_START) / TOTAL_HOURS) * 100}%`,
-                                top: 0,
-                                bottom: 0,
-                                width: 1,
-                                background: '#e9ecef',
-                              }}
-                            />
-                          ))}
-                          {/* Booking blocks */}
-                          {pitchBookings.map(bkg => {
-                            const left = timeToFraction(bkg.timeStart) * 100;
-                            const right = timeToFraction(bkg.timeEnd) * 100;
-                            const width = right - left;
-                            return (
-                              <div
-                                key={bkg.id}
-                                title={`${bkg.teamName} · ${bkg.timeStart}–${bkg.timeEnd} · ${bkg.format}`}
-                                style={{
-                                  position: 'absolute',
-                                  left: `${left}%`,
-                                  width: `${width}%`,
-                                  top: 5,
-                                  bottom: 5,
-                                  background: 'var(--mantine-primary-color-filled)',
-                                  borderRadius: 4,
-                                  overflow: 'hidden',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  padding: '0 5px',
-                                  cursor: 'default',
-                                }}
-                              >
-                                <Text size="xs" c="white" truncate fw={500}>
-                                  {bkg.teamName}
-                                </Text>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {dayPitches.length === 0 && (
-                    <Text size="sm" c="dimmed">No pitch data available.</Text>
-                  )}
-
-                  {dayPitches.length > 0 && dayBookings.length === 0 && (
-                    <Text size="sm" c="dimmed" mt="sm">No bookings on this date.</Text>
-                  )}
-                </div>
-              </div>
             )}
           </Stack>
         </Tabs.Panel>

@@ -131,11 +131,7 @@ export default function App() {
                 <BookingAdminPage clubFeedSlug={data.club.clubFeedSlug} />
               </ProtectedRoute>
             } />
-            <Route path="/schedule" element={
-              <ProtectedRoute>
-                <PitchSchedulePage />
-              </ProtectedRoute>
-            } />
+            <Route path="/schedule" element={<PitchSchedulePage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AppShell.Main>

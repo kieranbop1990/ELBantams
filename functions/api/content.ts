@@ -17,7 +17,8 @@ function json(data: unknown, init?: ResponseInit) {
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   await ensureTables(context.env.DB);
 
-  const auth = createAuth(context.env);
+  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
+  const auth = createAuth(context.env, { baseURL });
   const session = await auth.api.getSession({ headers: context.request.headers });
   if (!session) return json({ error: "Not authenticated" }, { status: 401 });
 

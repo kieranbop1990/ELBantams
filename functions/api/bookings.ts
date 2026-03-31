@@ -74,8 +74,7 @@ function nowMs() {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  const result = await requireAuth(context);
-  if ("error" in result) return result.error;
+  await ensureTables(context.env.DB);
 
   const url = new URL(context.request.url);
   const date = url.searchParams.get("date");   // YYYY-MM-DD (single day)

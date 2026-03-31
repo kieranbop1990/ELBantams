@@ -113,6 +113,14 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
           onClick={onNavClick}
         />
       ))}
+      <NavLink
+        component={Link}
+        to="/schedule"
+        label="Pitch Schedule"
+        leftSection={<IconCalendar size={16} />}
+        active={pathname === '/schedule'}
+        onClick={onNavClick}
+      />
 
       {visibleFeeds?.map(({ feed, label }) => (
         <NextTeamFixture key={label} feed={feed} label={`Next ${label} Fixture`} />
@@ -133,27 +141,17 @@ export function SiteSidebar({ club, sections, sidebarFeeds, onNavClick }: Props)
         </Text>
       </Stack>
 
-      {user && (
+      {user && (isManager || isAdmin) && (
         <div style={{ marginTop: 'auto' }}>
           <Divider mx="md" mb="xs" />
           <NavLink
             component={Link}
-            to="/schedule"
-            label="Pitch Schedule"
-            leftSection={<IconCalendar size={16} />}
-            active={pathname === '/schedule'}
+            to="/bookings"
+            label="Request a Pitch"
+            leftSection={<IconClipboardList size={16} />}
+            active={pathname === '/bookings'}
             onClick={onNavClick}
           />
-          {(isManager || isAdmin) && (
-            <NavLink
-              component={Link}
-              to="/bookings"
-              label="Request a Pitch"
-              leftSection={<IconClipboardList size={16} />}
-              active={pathname === '/bookings'}
-              onClick={onNavClick}
-            />
-          )}
         </div>
       )}
 
