@@ -4,6 +4,7 @@ import { ensureTables } from "../lib/ensure-tables";
 interface Env {
   DB: D1Database;
   BETTER_AUTH_SECRET: string;
+  BETTER_AUTH_URL?: string;
 }
 
 type BookingRequestRow = {
@@ -33,7 +34,8 @@ type PitchRow = {
 
 async function requireAdmin(context: EventContext<Env, string, unknown>) {
   await ensureTables(context.env.DB);
-  const auth = createAuth(context.env);
+  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
+  const auth = createAuth(context.env, { baseURL });
   const session = await auth.api.getSession({ headers: context.request.headers });
   if (!session) {
     return {
@@ -57,7 +59,8 @@ async function requireAdmin(context: EventContext<Env, string, unknown>) {
 
 async function requireManagerOrAdmin(context: EventContext<Env, string, unknown>) {
   await ensureTables(context.env.DB);
-  const auth = createAuth(context.env);
+  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
+  const auth = createAuth(context.env, { baseURL });
   const session = await auth.api.getSession({ headers: context.request.headers });
   if (!session) {
     return {
@@ -81,7 +84,8 @@ async function requireManagerOrAdmin(context: EventContext<Env, string, unknown>
 
 async function requireAuth(context: EventContext<Env, string, unknown>) {
   await ensureTables(context.env.DB);
-  const auth = createAuth(context.env);
+  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
+  const auth = createAuth(context.env, { baseURL });
   const session = await auth.api.getSession({ headers: context.request.headers });
   if (!session) {
     return {

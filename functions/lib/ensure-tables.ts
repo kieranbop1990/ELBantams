@@ -45,7 +45,10 @@ export const ensureTables = (db: D1Database): Promise<void> => {
       for (const sql of PITCH_SEED_STATEMENTS) {
         await db.exec(sql);
       }
-    })();
+    })().catch((err) => {
+      ensureTablesPromise = null;
+      throw err;
+    });
   }
   return ensureTablesPromise;
 };
