@@ -1,8 +1,8 @@
 # ELBantams FC Website
 
-Club website for ELBantams FC, built with React and TypeScript, deployed to GitHub Pages.
+Club website for ELBantams FC, built with React and TypeScript, deployed to Cloudflare Pages.
 
-**Live site:** https://kieranbop1990.github.io/ELBantams
+**Live site:** https://elbantams.pages.dev
 
 ## Use This for Your Own Club
 
