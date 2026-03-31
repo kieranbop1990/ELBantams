@@ -77,6 +77,11 @@ export function BookingAdminPage({ clubFeedSlug }: Props) {
         fetch('/api/pitches'),
       ]);
 
+      if (!reqRes.ok || !bkgRes.ok) {
+        setError('Failed to load data');
+        return;
+      }
+
       if (reqRes.ok) {
         const data = await reqRes.json() as { requests: AdminRequest[] };
         setRequests(data.requests);
