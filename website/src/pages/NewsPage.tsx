@@ -18,7 +18,7 @@ function NewsCard({ item }: { item: NewsItem }) {
 
         {hasBody && (
           <>
-            <Collapse in={expanded}>
+            <Collapse expanded={expanded}>
               <Divider my="xs" />
               <Stack gap="xs">
                 {item.body!.split('\n\n').map((para, i) => (
