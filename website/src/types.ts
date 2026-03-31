@@ -149,14 +149,6 @@ export interface LiveTeam {
   league: string;
 }
 
-export interface TeamFeed {
-  team: string;
-  league: string;
-  generated: string;
-  fixtures: Omit<LiveFixture, 'team' | 'home_away' | 'opponent'>[];
-  results: Omit<LiveResult, 'team' | 'home_away' | 'opponent' | 'goals_for' | 'goals_against'>[];
-}
-
 export interface AppData {
   club: Club;
   teams: TeamsData;
@@ -168,4 +160,12 @@ export interface AppData {
   clubFeed: ClubFeed | null;
   liveTeams: LiveTeam[];
   sidebarFeeds: { feed: TeamFeed; label: string; sectionId: string }[];
+}
+
+export interface TeamFeed {
+  team: string;
+  league: string;
+  generated: string;
+  fixtures: Omit<LiveFixture, 'team' | 'home_away' | 'opponent'>[];
+  results: Omit<LiveResult, 'team' | 'home_away' | 'opponent' | 'goals_for' | 'goals_against'>[];
 }
