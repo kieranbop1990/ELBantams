@@ -185,9 +185,6 @@ export function TeamPage({ liveTeams }: Props) {
                   {c.role}
                 </Badge>
                 <Text size="sm">{c.name}</Text>
-                <Anchor size="xs" c="dimmed" href={`mailto:${c.email}`}>
-                  {c.email}
-                </Anchor>
               </Group>
             ))}
           </Stack>
