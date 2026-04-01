@@ -106,7 +106,7 @@ export default function App() {
             <Route path="/signup" element={<SignUpPage />} />
             <Route path="/admin/users" element={
               <ProtectedRoute requireAdmin>
-                <AdminUsersPage />
+                <AdminUsersPage liveTeams={data.liveTeams} />
               </ProtectedRoute>
             } />
             <Route path="/customise" element={

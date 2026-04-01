@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Table, Select, Title, Stack, Alert, Loader, Center, Badge, Text } from '@mantine/core';
+import {
+  Table, Select, Title, Stack, Alert, Loader, Center, Badge, Text,
+  Tabs, Paper, Group, Button,
+} from '@mantine/core';
+import type { LiveTeam, TeamRoleAssignment } from '../types';
 
 interface UserRow {
   id: string;
@@ -9,11 +13,26 @@ interface UserRow {
   createdAt: string;
 }
 
-export function AdminUsersPage() {
+interface Props {
+  liveTeams: LiveTeam[];
+}
+
+export function AdminUsersPage({ liveTeams }: Props) {
+  // Users tab state
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updating, setUpdating] = useState<string | null>(null);
+
+  // Team assignments tab state
+  const [assignments, setAssignments] = useState<TeamRoleAssignment[]>([]);
+  const [assignmentsLoading, setAssignmentsLoading] = useState(true);
+  const [assignError, setAssignError] = useState('');
+  const [newUserId, setNewUserId] = useState<string | null>(null);
+  const [newTeamSlug, setNewTeamSlug] = useState<string | null>(null);
+  const [newRole, setNewRole] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [removing, setRemoving] = useState<string | null>(null);
 
   const fetchUsers = async () => {
     try {
@@ -28,8 +47,22 @@ export function AdminUsersPage() {
     }
   };
 
+  const fetchAssignments = async () => {
+    try {
+      const res = await fetch('/api/admin/user-team-roles');
+      if (!res.ok) throw new Error('Failed to load assignments');
+      const data = await res.json() as { assignments: TeamRoleAssignment[] };
+      setAssignments(data.assignments);
+    } catch {
+      setAssignError('Failed to load team assignments');
+    } finally {
+      setAssignmentsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
+    fetchAssignments();
   }, []);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
@@ -50,46 +83,225 @@ export function AdminUsersPage() {
     }
   };
 
+  const handleAddAssignment = async () => {
+    if (!newUserId || !newTeamSlug || !newRole) {
+      setAssignError('Please select a user, team, and role');
+      return;
+    }
+    const team = liveTeams.find(t => t.slug === newTeamSlug);
+    if (!team) {
+      setAssignError('Team not found');
+      return;
+    }
+    setAdding(true);
+    setAssignError('');
+    try {
+      const res = await fetch('/api/admin/user-team-roles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: newUserId,
+          teamSlug: team.slug,
+          teamName: team.name,
+          role: newRole,
+        }),
+      });
+      const data = await res.json() as { error?: string };
+      if (!res.ok) {
+        setAssignError(data.error ?? 'Failed to add assignment');
+        return;
+      }
+      setNewUserId(null);
+      setNewTeamSlug(null);
+      setNewRole(null);
+      // Refresh both assignments and users (role may have been auto-upgraded)
+      await Promise.all([fetchAssignments(), fetchUsers()]);
+    } catch {
+      setAssignError('Failed to add assignment');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const handleRemoveAssignment = async (id: string) => {
+    setRemoving(id);
+    setAssignError('');
+    try {
+      const res = await fetch(`/api/admin/user-team-roles?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('Failed to remove');
+      setAssignments(prev => prev.filter(a => a.id !== id));
+    } catch {
+      setAssignError('Failed to remove assignment');
+    } finally {
+      setRemoving(null);
+    }
+  };
+
+  const userOptions = users.map(u => ({
+    value: u.id,
+    label: `${u.name} (${u.email})`,
+  }));
+
+  const teamOptions = liveTeams.map(t => ({
+    value: t.slug,
+    label: t.name,
+  }));
+
+  const roleOptions = [
+    { value: 'coach', label: 'Coach' },
+    { value: 'manager', label: 'Manager' },
+    { value: 'subscriber', label: 'Subscriber' },
+  ];
+
+  const roleColor = (role: string) => {
+    if (role === 'manager') return 'blue';
+    if (role === 'coach') return 'teal';
+    return 'gray';
+  };
+
   if (loading) {
     return <Center h={200}><Loader /></Center>;
   }
 
   return (
-    <Stack maw={800} mx="auto">
+    <Stack maw={900} mx="auto">
       <Title order={2}>Manage Users</Title>
-      <Text size="sm" c="dimmed">{users.length} registered user{users.length !== 1 ? 's' : ''}</Text>
-      {error && <Alert color="red" variant="light">{error}</Alert>}
-      <Table striped highlightOnHover>
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Email</Table.Th>
-            <Table.Th>Role</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {users.map(user => (
-            <Table.Tr key={user.id}>
-              <Table.Td>{user.name}</Table.Td>
-              <Table.Td>{user.email}</Table.Td>
-              <Table.Td>
-                <Select
-                  value={user.role}
-                  onChange={(val) => val && handleRoleChange(user.id, val)}
-                  data={[
-                    { value: 'admin', label: 'Admin' },
-                    { value: 'manager', label: 'Manager' },
-                    { value: 'member', label: 'Member' },
-                  ]}
-                  size="xs"
-                  w={120}
-                  disabled={updating === user.id}
-                />
-              </Table.Td>
-            </Table.Tr>
-          ))}
-        </Table.Tbody>
-      </Table>
+      <Tabs defaultValue="users">
+        <Tabs.List>
+          <Tabs.Tab value="users">Users</Tabs.Tab>
+          <Tabs.Tab value="team-roles">Team Assignments</Tabs.Tab>
+        </Tabs.List>
+
+        <Tabs.Panel value="users" pt="md">
+          <Stack>
+            <Text size="sm" c="dimmed">{users.length} registered user{users.length !== 1 ? 's' : ''}</Text>
+            {error && <Alert color="red" variant="light">{error}</Alert>}
+            <Table striped highlightOnHover>
+              <Table.Thead>
+                <Table.Tr>
+                  <Table.Th>Name</Table.Th>
+                  <Table.Th>Email</Table.Th>
+                  <Table.Th>Role</Table.Th>
+                </Table.Tr>
+              </Table.Thead>
+              <Table.Tbody>
+                {users.map(user => (
+                  <Table.Tr key={user.id}>
+                    <Table.Td>{user.name}</Table.Td>
+                    <Table.Td>{user.email}</Table.Td>
+                    <Table.Td>
+                      <Select
+                        value={user.role}
+                        onChange={(val) => val && handleRoleChange(user.id, val)}
+                        data={[
+                          { value: 'admin', label: 'Admin' },
+                          { value: 'manager', label: 'Manager' },
+                          { value: 'member', label: 'Member' },
+                        ]}
+                        size="xs"
+                        w={120}
+                        disabled={updating === user.id}
+                      />
+                    </Table.Td>
+                  </Table.Tr>
+                ))}
+              </Table.Tbody>
+            </Table>
+          </Stack>
+        </Tabs.Panel>
+
+        <Tabs.Panel value="team-roles" pt="md">
+          <Stack>
+            {assignError && <Alert color="red" variant="light" onClose={() => setAssignError('')} withCloseButton>{assignError}</Alert>}
+
+            <Paper p="md" withBorder>
+              <Title order={4} mb="sm">Add Assignment</Title>
+              <Stack gap="sm">
+                <Group align="flex-end" wrap="wrap" gap="sm">
+                  <Select
+                    label="User"
+                    placeholder="Select user"
+                    value={newUserId}
+                    onChange={setNewUserId}
+                    data={userOptions}
+                    searchable
+                    w={260}
+                  />
+                  <Select
+                    label="Team"
+                    placeholder="Select team"
+                    value={newTeamSlug}
+                    onChange={setNewTeamSlug}
+                    data={teamOptions}
+                    searchable
+                    w={220}
+                  />
+                  <Select
+                    label="Role"
+                    placeholder="Select role"
+                    value={newRole}
+                    onChange={setNewRole}
+                    data={roleOptions}
+                    w={140}
+                  />
+                  <Button onClick={handleAddAssignment} loading={adding} mt={24}>
+                    Add
+                  </Button>
+                </Group>
+                <Text size="xs" c="dimmed">
+                  Assigning Coach or Manager automatically upgrades the user's global role to Manager.
+                </Text>
+              </Stack>
+            </Paper>
+
+            {assignmentsLoading ? (
+              <Center h={100}><Loader size="sm" /></Center>
+            ) : assignments.length === 0 ? (
+              <Text size="sm" c="dimmed">No team assignments yet.</Text>
+            ) : (
+              <Table striped highlightOnHover>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>User</Table.Th>
+                    <Table.Th>Team</Table.Th>
+                    <Table.Th>Role</Table.Th>
+                    <Table.Th></Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {assignments.map(a => (
+                    <Table.Tr key={a.id}>
+                      <Table.Td>
+                        <Text size="sm">{a.userName}</Text>
+                        <Text size="xs" c="dimmed">{a.userEmail}</Text>
+                      </Table.Td>
+                      <Table.Td><Text size="sm">{a.teamName}</Text></Table.Td>
+                      <Table.Td>
+                        <Badge size="sm" color={roleColor(a.role)} variant="light">
+                          {a.role}
+                        </Badge>
+                      </Table.Td>
+                      <Table.Td>
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          color="red"
+                          loading={removing === a.id}
+                          onClick={() => handleRemoveAssignment(a.id)}
+                        >
+                          Remove
+                        </Button>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            )}
+          </Stack>
+        </Tabs.Panel>
+      </Tabs>
     </Stack>
   );
 }

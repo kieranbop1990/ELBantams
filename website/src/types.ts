@@ -162,6 +162,26 @@ export interface AppData {
   sidebarFeeds: { feed: TeamFeed; label: string; sectionId: string }[];
 }
 
+export interface UserTeamRole {
+  id: string;
+  teamSlug: string;
+  teamName: string;
+  role: 'coach' | 'manager' | 'subscriber';
+}
+
+export interface TeamContact {
+  id: string;
+  name: string;
+  email: string;
+  role: 'coach' | 'manager';
+}
+
+export interface TeamRoleAssignment extends UserTeamRole {
+  userId: string;
+  userName: string;
+  userEmail: string;
+}
+
 export interface TeamFeed {
   team: string;
   league: string;
