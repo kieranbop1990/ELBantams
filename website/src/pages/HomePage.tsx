@@ -1,11 +1,14 @@
-import { Title, Text, Button, Group, SimpleGrid, Paper, ThemeIcon, Stack, Image } from '@mantine/core';
+import { Title, Text, Button, Group, SimpleGrid, Paper, ThemeIcon, Stack, Image, Badge } from '@mantine/core';
 import { Link } from 'react-router-dom';
 import type { Club } from '../types';
 import { tablerIcon } from '../utils/icons';
+import { useAuth } from '../context/AuthContext';
 
 interface Props { club: Club }
 
 export function HomePage({ club }: Props) {
+  const { user, loading, teamRoles } = useAuth();
+
   return (
     <Stack gap="xl">
       {/* Banner */}
@@ -41,6 +44,39 @@ export function HomePage({ club }: Props) {
           )}
         </Group>
       </Paper>
+
+      {/* My Teams — shown to logged-in users with team assignments */}
+      {!loading && user && teamRoles.length > 0 && (
+        <div>
+          <Title order={2} mb="md">My Teams</Title>
+          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
+            {teamRoles.map(t => (
+              <Paper key={t.id} p="md" radius="md" withBorder>
+                <Group justify="space-between" mb={4}>
+                  <Text fw={600}>{t.teamName}</Text>
+                  <Badge
+                    size="sm"
+                    color={t.role === 'manager' ? 'blue' : t.role === 'coach' ? 'teal' : 'gray'}
+                    variant="light"
+                  >
+                    {t.role}
+                  </Badge>
+                </Group>
+                <Group gap="xs" mt="sm">
+                  <Button component={Link} to={`/teams/${t.teamLeague}/${t.teamSlug}`} size="xs" variant="light">
+                    Fixtures &amp; Results
+                  </Button>
+                  {t.role !== 'subscriber' && (
+                    <Button component={Link} to="/bookings" size="xs" variant="outline">
+                      Book Pitch
+                    </Button>
+                  )}
+                </Group>
+              </Paper>
+            ))}
+          </SimpleGrid>
+        </div>
+      )}
 
       {/* Features */}
       <div>

@@ -21,6 +21,9 @@ const TABLE_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS "booking" ("id" TEXT PRIMARY KEY NOT NULL, "requestId" TEXT REFERENCES "booking_request"("id") ON DELETE SET NULL, "pitchId" TEXT NOT NULL REFERENCES "pitch"("id"), "date" TEXT NOT NULL, "timeStart" TEXT NOT NULL, "timeEnd" TEXT NOT NULL, "teamName" TEXT NOT NULL, "format" TEXT NOT NULL, "notes" TEXT, "createdAt" INTEGER NOT NULL)`,
   `CREATE INDEX IF NOT EXISTS "idx_booking_pitchId_date" ON "booking" ("pitchId", "date")`,
   `CREATE INDEX IF NOT EXISTS "idx_booking_date" ON "booking" ("date")`,
+  `CREATE TABLE IF NOT EXISTS "user_team_role" ("id" TEXT PRIMARY KEY NOT NULL, "userId" TEXT NOT NULL REFERENCES "user"("id") ON DELETE CASCADE, "teamSlug" TEXT NOT NULL, "teamLeague" TEXT NOT NULL, "teamName" TEXT NOT NULL, "role" TEXT NOT NULL CHECK("role" IN ('coach', 'manager', 'subscriber')), "createdAt" INTEGER NOT NULL, UNIQUE("userId", "teamSlug", "teamLeague"))`,
+  `CREATE INDEX IF NOT EXISTS "idx_user_team_role_userId" ON "user_team_role" ("userId")`,
+  `CREATE INDEX IF NOT EXISTS "idx_user_team_role_teamSlug" ON "user_team_role" ("teamSlug", "teamLeague")`,
 ];
 
 const PITCH_SEED_STATEMENTS = [

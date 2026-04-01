@@ -3,6 +3,7 @@ import {
   Stack, Title, Text, Tabs, Table, Badge, Button,
   Select, Textarea, Alert, Group, Paper,
 } from '@mantine/core';
+import { useAuth } from '../context/AuthContext';
 
 interface Pitch {
   id: string;
@@ -42,6 +43,7 @@ function statusColor(status: string) {
 }
 
 export function PitchBookingPage() {
+  const { isAdmin, teamRoles } = useAuth();
   const [pitches, setPitches] = useState<Pitch[]>([]);
   const [teamOptions, setTeamOptions] = useState<TeamOption[]>([]);
   const [requests, setRequests] = useState<BookingRequest[]>([]);
@@ -85,6 +87,19 @@ export function PitchBookingPage() {
           .map(t => ({ value: t.name, label: t.name })),
       })).filter(g => g.items.length > 0);
       setTeamOptions(grouped);
+
+      // Pre-fill team if user has exactly one coach/manager assignment
+      if (!isAdmin) {
+        const assignedNames = teamRoles
+          .filter(r => r.role === 'coach' || r.role === 'manager')
+          .map(r => r.teamName);
+        if (assignedNames.length === 1) {
+          const allTeamNames = grouped.flatMap(g => g.items.map(i => i.value));
+          if (allTeamNames.includes(assignedNames[0])) {
+            setTeamName(assignedNames[0]);
+          }
+        }
+      }
     } catch {
       // ignore
     }

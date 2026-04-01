@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   Title, Text, Stack, Paper, Badge, Group, Tabs, Table,
-  Alert, Loader, Center, Button, Tooltip, CopyButton,
+  Alert, Loader, Center, Button, Tooltip, CopyButton, Anchor,
 } from '@mantine/core';
 import { IconCalendar, IconTrophy, IconAlertCircle, IconCopy, IconCheck, IconArrowLeft } from '@tabler/icons-react';
-import type { LiveTeam, TeamFeed } from '../types';
+import type { LiveTeam, TeamFeed, TeamContact } from '../types';
 import { loadTeamFeed, teamCalendarUrl } from '../data';
 
 const FORM_GAMES = 5;
@@ -73,6 +73,7 @@ function formatDate(iso: string): string {
 export function TeamPage({ liveTeams }: Props) {
   const { teamSlug, league } = useParams<{ teamSlug: string; league?: string }>();
   const [feed, setFeed] = useState<TeamFeed | null | undefined>(undefined);
+  const [contacts, setContacts] = useState<TeamContact[]>([]);
 
   const teamMeta = league
     ? liveTeams.find((t) => t.slug === teamSlug && t.league === league)
@@ -82,6 +83,15 @@ export function TeamPage({ liveTeams }: Props) {
     if (!teamMeta) { setFeed(null); return; }
     setFeed(undefined);
     loadTeamFeed(teamMeta.league, teamMeta.slug).then(setFeed);
+  }, [teamMeta]);
+
+  useEffect(() => {
+    if (!teamMeta) { setContacts([]); return; }
+    const params = new URLSearchParams({ slug: teamMeta.slug, league: teamMeta.league });
+    fetch(`/api/team-contacts?${params}`)
+      .then(r => r.ok ? r.json() : { contacts: [] })
+      .then((d: { contacts: TeamContact[] }) => setContacts(d.contacts))
+      .catch(() => setContacts([]));
   }, [teamMeta]);
 
   if (!teamMeta) {
@@ -125,6 +135,25 @@ export function TeamPage({ liveTeams }: Props) {
       <Text size="xs" c="dimmed">
         Paste the copied link into Google Calendar, Apple Calendar, or Outlook to subscribe.
       </Text>
+
+      {contacts.length > 0 && (
+        <Paper p="sm" withBorder radius="md">
+          <Text size="sm" fw={600} mb="xs">Team Contacts</Text>
+          <Stack gap={6}>
+            {contacts.map(c => (
+              <Group key={c.id} gap="xs" wrap="wrap">
+                <Badge size="xs" variant="light" color={c.role === 'manager' ? 'blue' : 'teal'}>
+                  {c.role}
+                </Badge>
+                <Text size="sm">{c.name}</Text>
+                <Anchor size="xs" c="dimmed" href={`mailto:${c.email}`}>
+                  {c.email}
+                </Anchor>
+              </Group>
+            ))}
+          </Stack>
+        </Paper>
+      )}
 
       {feed === undefined ? (
         <Center py="xl"><Loader /></Center>
