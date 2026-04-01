@@ -4,6 +4,18 @@ import {
   Select, Textarea, Alert, Group, Paper,
 } from '@mantine/core';
 import { useAuth } from '../context/AuthContext';
+import type { LiveTeam } from '../types';
+
+interface Pitch {
+  id: string;
+  name: string;
+  formats: string[];
+}
+
+interface TeamOption {
+  group: string;
+  items: { value: string; label: string }[];
+}
 
 interface Pitch {
   id: string;
@@ -19,6 +31,8 @@ interface TeamOption {
 interface BookingRequest {
   id: string;
   teamName: string;
+  teamSlug?: string;
+  teamLeague?: string;
   date: string;
   timeStart: string;
   timeEnd: string;
@@ -42,15 +56,25 @@ function statusColor(status: string) {
   return 'yellow';
 }
 
-export function PitchBookingPage() {
-  const { isAdmin, teamRoles } = useAuth();
+interface Props {
+  liveTeams: LiveTeam[];
+}
+
+export function PitchBookingPage({ liveTeams }: Props) {
+  const { teamRoles } = useAuth();
   const [pitches, setPitches] = useState<Pitch[]>([]);
   const [teamOptions, setTeamOptions] = useState<TeamOption[]>([]);
+  const [dynamicTeamOptions, setDynamicTeamOptions] = useState<{ value: string; label: string }[]>([]);
+  const [allTeamOptions, setAllTeamOptions] = useState<TeamOption[]>([]);
   const [requests, setRequests] = useState<BookingRequest[]>([]);
   const [activeTab, setActiveTab] = useState<string | null>('request');
 
   // Form state
+  const [selectedTeamValue, setSelectedTeamValue] = useState<string | null>(null);
   const [teamName, setTeamName] = useState<string | null>(null);
+  const [teamSlug, setTeamSlug] = useState<string | null>(null);
+  const [teamLeague, setTeamLeague] = useState<string | null>(null);
+  const [isDynamicTeam, setIsDynamicTeam] = useState(false);
   const [date, setDate] = useState('');
   const [timeStart, setTimeStart] = useState('');
   const [timeEnd, setTimeEnd] = useState('');
@@ -84,20 +108,51 @@ export function PitchBookingPage() {
         group: s.name,
         items: data.teams
           .filter(t => t.sectionId === s.id)
-          .map(t => ({ value: t.name, label: t.name })),
+          .map(t => ({ value: `defined:${t.id}|${t.name}`, label: t.name })),
       })).filter(g => g.items.length > 0);
       setTeamOptions(grouped);
 
-      // Pre-fill team if user has exactly one coach/manager assignment
-      if (!isAdmin) {
-        const assignedNames = teamRoles
-          .filter(r => r.role === 'coach' || r.role === 'manager')
-          .map(r => r.teamName);
-        if (assignedNames.length === 1) {
-          const allTeamNames = grouped.flatMap(g => g.items.map(i => i.value));
-          if (allTeamNames.includes(assignedNames[0])) {
-            setTeamName(assignedNames[0]);
+      // Set dynamic team options from liveTeams
+      setDynamicTeamOptions(
+        liveTeams
+          .map(t => ({ value: `dynamic:${t.slug}|${t.league}|${t.name}`, label: `${t.name} (${t.league})` }))
+          .sort((a, b) => a.label.localeCompare(b.label))
+      );
+
+      // Build combined team options with user's teams at the top
+      const userTeamItems = teamRoles
+        .filter(r => r.role === 'coach' || r.role === 'manager')
+        .map(r => {
+          // Check if this is a defined team
+          const definedTeam = data.teams.find(t => t.name === r.teamName);
+          if (definedTeam) {
+            return { value: `defined:${definedTeam.id}|${r.teamName}`, label: `${r.teamName} (${r.role})` };
           }
+          // Dynamic team
+          return { value: `dynamic:${r.teamSlug}|${r.teamLeague}|${r.teamName}`, label: `${r.teamName} (${r.teamLeague}) - ${r.role}` };
+        });
+
+      const allTeamOptions: TeamOption[] = [];
+      if (userTeamItems.length > 0) {
+        allTeamOptions.push({ group: 'Your Teams', items: userTeamItems });
+      }
+      // Add defined teams
+      allTeamOptions.push(...grouped);
+      // Add dynamic teams
+      if (dynamicTeamOptions.length > 0) {
+        allTeamOptions.push({ group: 'Dynamic Teams', items: dynamicTeamOptions });
+      }
+      setAllTeamOptions(allTeamOptions);
+
+      // Pre-fill team if user has exactly one coach/manager assignment
+      if (userTeamItems.length === 1) {
+        setSelectedTeamValue(userTeamItems[0].value);
+        setTeamName(userTeamItems[0].label.split(' (')[0]);
+        // Set slug/league for dynamic teams
+        if (userTeamItems[0].value.startsWith('dynamic:')) {
+          const parts = userTeamItems[0].value.split('|');
+          setTeamSlug(parts[1]);
+          setTeamLeague(parts[2]);
         }
       }
     } catch {
@@ -123,7 +178,7 @@ export function PitchBookingPage() {
     fetchPitches();
     fetchTeams();
     fetchRequests();
-  }, []);
+  }, [teamRoles]);
 
   const handleSubmit = async () => {
     setError('');
@@ -141,7 +196,16 @@ export function PitchBookingPage() {
       const res = await fetch('/api/booking-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamName, date, timeStart, timeEnd, format, notes: notes || undefined }),
+        body: JSON.stringify({
+          teamName,
+          teamSlug: isDynamicTeam ? teamSlug : null,
+          teamLeague: isDynamicTeam ? teamLeague : null,
+          date,
+          timeStart,
+          timeEnd,
+          format,
+          notes: notes || undefined,
+        }),
       });
 
       if (!res.ok) {
@@ -151,7 +215,11 @@ export function PitchBookingPage() {
       }
 
       setSuccess('Your booking request has been submitted and is pending approval.');
+      setSelectedTeamValue(null);
       setTeamName(null);
+      setTeamSlug(null);
+      setTeamLeague(null);
+      setIsDynamicTeam(false);
       setDate('');
       setTimeStart('');
       setTimeEnd('');
@@ -178,7 +246,7 @@ export function PitchBookingPage() {
         </Tabs.List>
 
         <Tabs.Panel value="request" pt="md">
-          <Paper p="md" withBorder>
+              <Paper p="md" withBorder>
             <Stack>
               {error && <Alert color="red" variant="light" onClose={() => setError('')} withCloseButton>{error}</Alert>}
               {success && <Alert color="green" variant="light" onClose={() => setSuccess('')} withCloseButton>{success}</Alert>}
@@ -186,9 +254,34 @@ export function PitchBookingPage() {
               <Select
                 label="Team"
                 placeholder="Select your team"
-                value={teamName}
-                onChange={setTeamName}
-                data={teamOptions}
+                value={selectedTeamValue}
+                onChange={(val) => {
+                  setSelectedTeamValue(val);
+                  if (!val) {
+                    setTeamName(null);
+                    setTeamSlug(null);
+                    setTeamLeague(null);
+                    setIsDynamicTeam(false);
+                    return;
+                  }
+                  
+                  if (val.startsWith('defined:')) {
+                    const [, rest] = val.split('defined:');
+                    const [teamId, name] = rest.split('|');
+                    setTeamName(name);
+                    setTeamSlug(null);
+                    setTeamLeague(null);
+                    setIsDynamicTeam(false);
+                  } else if (val.startsWith('dynamic:')) {
+                    const [, rest] = val.split('dynamic:');
+                    const [slug, league, name] = rest.split('|');
+                    setTeamSlug(slug);
+                    setTeamLeague(league);
+                    setTeamName(name);
+                    setIsDynamicTeam(true);
+                  }
+                }}
+                data={allTeamOptions}
                 searchable
                 required
               />

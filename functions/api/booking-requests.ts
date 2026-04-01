@@ -11,6 +11,8 @@ type BookingRequestRow = {
   id: string;
   userId: string;
   teamName: string;
+  teamSlug: string | null;
+  teamLeague: string | null;
   date: string;
   timeStart: string;
   timeEnd: string;
@@ -125,7 +127,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   if (role === "admin") {
     let query = `
-      SELECT br.id, br.userId, br.teamName, br.date, br.timeStart, br.timeEnd,
+      SELECT br.id, br.userId, br.teamName, br.teamSlug, br.teamLeague, br.date, br.timeStart, br.timeEnd,
              br.format, br.notes, br.status, br.declineReason, br.createdAt, br.updatedAt,
              u.name as userName, u.email as userEmail
       FROM booking_request br
@@ -151,6 +153,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       userName: r.userName,
       userEmail: r.userEmail,
       teamName: r.teamName,
+      teamSlug: r.teamSlug ?? undefined,
+      teamLeague: r.teamLeague ?? undefined,
       date: r.date,
       timeStart: r.timeStart,
       timeEnd: r.timeEnd,
@@ -168,7 +172,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   // Manager: return only their own requests
   const userId = (session.user as Record<string, unknown>).id as string;
   let query = `
-    SELECT id, userId, teamName, date, timeStart, timeEnd,
+    SELECT id, userId, teamName, teamSlug, teamLeague, date, timeStart, timeEnd,
            format, notes, status, declineReason, createdAt, updatedAt
     FROM booking_request
     WHERE userId = ?
@@ -191,6 +195,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     id: r.id,
     userId: r.userId,
     teamName: r.teamName,
+    teamSlug: r.teamSlug ?? undefined,
+    teamLeague: r.teamLeague ?? undefined,
     date: r.date,
     timeStart: r.timeStart,
     timeEnd: r.timeEnd,
@@ -214,6 +220,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const body = (await context.request.json()) as Partial<{
     teamName: string;
+    teamSlug: string;
+    teamLeague: string;
     date: string;
     timeStart: string;
     timeEnd: string;
@@ -222,6 +230,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }>;
 
   const teamName = body.teamName?.trim() ?? "";
+  const teamSlug = body.teamSlug?.trim() ?? null;
+  const teamLeague = body.teamLeague?.trim() ?? null;
   const date = body.date?.trim() ?? "";
   const timeStart = body.timeStart?.trim() ?? "";
   const timeEnd = body.timeEnd?.trim() ?? "";
@@ -245,10 +255,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   await context.env.DB
     .prepare(
-      `INSERT INTO booking_request (id, userId, teamName, date, timeStart, timeEnd, format, notes, status, createdAt, updatedAt)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`
+      `INSERT INTO booking_request (id, userId, teamName, teamSlug, teamLeague, date, timeStart, timeEnd, format, notes, status, createdAt, updatedAt)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)`
     )
-    .bind(id, userId, teamName, date, timeStart, timeEnd, format, notes, ts, ts)
+    .bind(id, userId, teamName, teamSlug, teamLeague, date, timeStart, timeEnd, format, notes, ts, ts)
     .run();
 
   return json({ ok: true, id }, { status: 201 });
@@ -285,9 +295,9 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
 
     // Check request exists and is pending
     const request = await context.env.DB
-      .prepare(`SELECT id, date, format FROM booking_request WHERE id = ? AND status = 'pending'`)
+      .prepare(`SELECT id, teamName, teamSlug, teamLeague, date, format FROM booking_request WHERE id = ? AND status = 'pending'`)
       .bind(id)
-      .first<{ id: string; date: string; format: string }>();
+      .first<{ id: string; teamName: string; teamSlug: string | null; teamLeague: string | null; date: string; format: string }>();
 
     if (!request) {
       return json({ error: "Booking request not found or not pending" }, { status: 404 });
@@ -333,9 +343,9 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
 
     // Get the full request for denormalised fields
     const fullRequest = await context.env.DB
-      .prepare(`SELECT teamName FROM booking_request WHERE id = ?`)
+      .prepare(`SELECT teamName, teamSlug, teamLeague FROM booking_request WHERE id = ?`)
       .bind(id)
-      .first<{ teamName: string }>();
+      .first<{ teamName: string; teamSlug: string | null; teamLeague: string | null }>();
 
     if (!fullRequest) {
       return json({ error: "Booking request not found" }, { status: 404 });
@@ -344,12 +354,12 @@ export const onRequestPatch: PagesFunction<Env> = async (context) => {
     await context.env.DB.batch([
       context.env.DB
         .prepare(
-          `INSERT INTO booking (id, requestId, pitchId, date, timeStart, timeEnd, teamName, format, notes, createdAt)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+          `INSERT INTO booking (id, requestId, pitchId, date, timeStart, timeEnd, teamName, teamSlug, teamLeague, format, notes, createdAt)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
         .bind(
           bookingId, id, pitchId, request.date, timeStart, timeEnd,
-          fullRequest.teamName, request.format, notes, ts
+          fullRequest.teamName, fullRequest.teamSlug, fullRequest.teamLeague, request.format, notes, ts
         ),
       context.env.DB
         .prepare(

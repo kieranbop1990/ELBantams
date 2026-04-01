@@ -24,13 +24,19 @@ interface ClubFeed {
 
 function inferFormat(teamName: string): string {
   if (/under.?(6|7|8|9)\b/i.test(teamName) || /\bu(6|7|8|9)\b/i.test(teamName)) return "5v5";
-  if (/under.?(10|11|12)\b/i.test(teamName) || /\bu(10|11|12)\b/i.test(teamName)) return "9v9";
+  if (/under.?(10|11|12)\b/i.test(teamName) || /\bu(10|11|12)\b/i.test(teamName)) return "7v7";
+  if (/under.?(13|14)\b/i.test(teamName) || /\bu(13|14)\b/i.test(teamName)) return "9v9";
   return "11v11";
 }
 
-function addTwoHours(time: string): string {
+function getDurationByFormat(format: string): number {
+  return format === "5v5" || format === "7v7" ? 1 : 2;
+}
+
+function addDuration(time: string, hours: number): string {
   const [h, m] = time.split(":").map(Number);
-  return `${String(Math.min(h + 2, 23)).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+  const newH = (h + hours) % 24;
+  return `${String(newH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function json(data: unknown, init?: ResponseInit) {
@@ -83,6 +89,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (existing) { skipped++; continue; }
 
+    const format = inferFormat(fixture.team);
     await context.env.DB
       .prepare(
         `INSERT INTO booking_request (id, userId, teamName, date, timeStart, timeEnd, format, notes, status, createdAt, updatedAt)
@@ -94,8 +101,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         fixture.team,
         fixture.date,
         fixture.time,
-        addTwoHours(fixture.time),
-        inferFormat(fixture.team),
+        addDuration(fixture.time, getDurationByFormat(format)),
+        format,
         `Auto-imported · ${fixture.division}`,
         ts,
         ts

@@ -13,6 +13,8 @@ type BookingRow = {
   timeStart: string;
   timeEnd: string;
   teamName: string;
+  teamSlug: string | null;
+  teamLeague: string | null;
   format: string;
   notes: string | null;
   pitchName: string;
@@ -81,7 +83,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const month = url.searchParams.get("month"); // YYYY-MM
 
   let query = `
-    SELECT b.id, b.date, b.timeStart, b.timeEnd, b.teamName, b.format, b.notes,
+    SELECT b.id, b.date, b.timeStart, b.timeEnd, b.teamName, b.teamSlug, b.teamLeague, b.format, b.notes,
            b.createdAt, b.requestId, p.name as pitchName, p.id as pitchId
     FROM booking b
     JOIN pitch p ON b.pitchId = p.id
@@ -109,6 +111,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     timeStart: r.timeStart,
     timeEnd: r.timeEnd,
     teamName: r.teamName,
+    teamSlug: r.teamSlug ?? undefined,
+    teamLeague: r.teamLeague ?? undefined,
     format: r.format,
     notes: r.notes ?? undefined,
     pitchName: r.pitchName,

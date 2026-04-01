@@ -123,7 +123,7 @@ export default function App() {
             } />
             <Route path="/bookings" element={
               <ProtectedRoute requireManager>
-                <PitchBookingPage />
+                <PitchBookingPage liveTeams={data.liveTeams} />
               </ProtectedRoute>
             } />
             <Route path="/admin/bookings" element={

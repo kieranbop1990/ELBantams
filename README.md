@@ -32,12 +32,42 @@ See [WHITELABEL.md](WHITELABEL.md) for the full guide, including the branch-per-
 
 ## Getting Started
 
+### Frontend Only
 ```bash
 cd website/
-npm install       # or: pnpm install
-npm run dev       # Start dev server at http://localhost:5173
-npm run build     # Type-check + build to dist/
-npm run preview   # Preview production build
+npm install
+npm run dev
+```
+
+### Full Stack (Frontend + Serverless API)
+This runs the Vite dev server with the Cloudflare Workers API proxy:
+```bash
+make dev
+```
+Access at http://localhost:5173 — API calls proxied to wrangler on port 8788.
+
+### Other Targets
+```bash
+make worker    # Run wrangler API only (port 8788)
+make ui        # Run Vite UI only (port 5173)
+make preview   # Preview production build
+```
+
+### Database Migrations
+```bash
+make db-migrate-local  # Apply migrations to local D1
+make db-migrate-prod   # Apply migrations to production D1
+```
+
+### Environment Variables
+The wrangler config (`wrangler.toml`) includes:
+- `BETTER_AUTH_SECRET` — Auth secret
+- D1 database binding `DB`
+
+For local development, create a `.dev.vars` file:
+```
+BETTER_AUTH_SECRET=your-secret-here
+BETTER_AUTH_URL=http://localhost:8788
 ```
 
 ## Project Structure

@@ -13,6 +13,17 @@ interface UserRow {
   createdAt: string;
 }
 
+interface DefinedTeam {
+  id: string;
+  sectionId: string;
+  name: string;
+}
+
+interface DefinedSection {
+  id: string;
+  name: string;
+}
+
 interface Props {
   liveTeams: LiveTeam[];
 }
@@ -33,6 +44,8 @@ export function AdminUsersPage({ liveTeams }: Props) {
   const [newRole, setNewRole] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [definedSections, setDefinedSections] = useState<DefinedSection[]>([]);
+  const [definedTeams, setDefinedTeams] = useState<DefinedTeam[]>([]);
 
   const fetchUsers = async () => {
     try {
@@ -60,9 +73,25 @@ export function AdminUsersPage({ liveTeams }: Props) {
     }
   };
 
+  const fetchDefinedTeams = async () => {
+    try {
+      const res = await fetch('/api/teams');
+      if (!res.ok) return;
+      const data = await res.json() as {
+        sections: DefinedSection[];
+        teams: DefinedTeam[];
+      };
+      setDefinedSections(data.sections);
+      setDefinedTeams(data.teams);
+    } catch {
+      // ignore
+    }
+  };
+
   useEffect(() => {
     fetchUsers();
     fetchAssignments();
+    fetchDefinedTeams();
   }, []);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
@@ -88,13 +117,33 @@ export function AdminUsersPage({ liveTeams }: Props) {
       setAssignError('Please select a user, team, and role');
       return;
     }
-    // newTeamSlug is encoded as "slug|league"
-    const [slug, league] = newTeamSlug.split('|');
-    const team = liveTeams.find(t => t.slug === slug && t.league === league);
-    if (!team) {
-      setAssignError('Team not found');
+
+    let teamSlug: string;
+    let teamLeague: string;
+    let teamName: string;
+
+    if (newTeamSlug.startsWith('defined:')) {
+      const [, rest] = newTeamSlug.split('defined:');
+      const [teamId, name] = rest.split('|');
+      teamSlug = `defined:${teamId}`;
+      teamLeague = '';
+      teamName = name;
+    } else if (newTeamSlug.startsWith('dynamic:')) {
+      const [, rest] = newTeamSlug.split('dynamic:');
+      const [slug, league] = rest.split('|');
+      const team = liveTeams.find(t => t.slug === slug && t.league === league);
+      if (!team) {
+        setAssignError('Dynamic team not found');
+        return;
+      }
+      teamSlug = team.slug;
+      teamLeague = team.league;
+      teamName = team.name;
+    } else {
+      setAssignError('Invalid team selection format');
       return;
     }
+
     setAdding(true);
     setAssignError('');
     try {
@@ -103,9 +152,9 @@ export function AdminUsersPage({ liveTeams }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: newUserId,
-          teamSlug: team.slug,
-          teamLeague: team.league,
-          teamName: team.name,
+          teamSlug,
+          teamLeague,
+          teamName,
           role: newRole,
         }),
       });
@@ -147,10 +196,24 @@ export function AdminUsersPage({ liveTeams }: Props) {
     label: `${u.name} (${u.email})`,
   }));
 
-  const teamOptions = liveTeams.map(t => ({
-    value: `${t.slug}|${t.league}`,
+  const definedTeamOptions: { group: string; items: { value: string; label: string }[] }[] = definedSections
+    .map(s => ({
+      group: s.name,
+      items: definedTeams
+        .filter(t => t.sectionId === s.id)
+        .map(t => ({ value: `defined:${t.id}|${t.name}`, label: t.name })),
+    }))
+    .filter(g => g.items.length > 0);
+
+  const dynamicTeamOptions = liveTeams.map(t => ({
+    value: `dynamic:${t.slug}|${t.league}`,
     label: `${t.name} (${t.league})`,
   }));
+
+  const teamOptions = [
+    ...definedTeamOptions,
+    { group: 'Dynamic Teams', items: dynamicTeamOptions },
+  ];
 
   const roleOptions = [
     { value: 'coach', label: 'Coach' },

@@ -1,4 +1,21 @@
-.PHONY: help worker ui dev preview install install-ui
+.PHONY: help worker worker-migrated ui ui-remote dev dev-full preview install install-ui db-migrate-local db-migrate-prod
+
+help:
+	@echo "Targets:"
+	@echo "  make dev              Run full stack (migrates DB + worker + UI)"
+	@echo "  make worker          Run wrangler API only"
+	@echo "  make worker-migrated Run worker after migrating local DB"
+	@echo "  make ui              Run Vite UI only"
+	@echo "  make ui-remote       Run UI with remote API"
+	@echo "  make preview         Preview built Pages output"
+	@echo "  make install         Install deps (root + UI)"
+	@echo "  make install-ui      Install UI deps only"
+	@echo "  make db-migrate-local  Apply migrations to local D1"
+	@echo "  make db-migrate-prod   Apply migrations to production D1"
+	@echo ""
+	@echo "Vars:"
+	@echo "  UI_PORT=5173     Vite dev server port (default)"
+	@echo "  WORKER_PORT=8788 Wrangler dev port (default)"
 
 # Config
 D1_BINDING ?= DB
@@ -8,24 +25,8 @@ WORKER_PORT ?= 8788
 PERSIST_DIR ?= .wrangler/state
 API_TARGET ?= https://elbantams.pages.dev
 
-help:
-	@echo "Targets:"
-	@echo "  make worker      Run local Cloudflare Pages/Worker (D1 + UI proxy)"
-	@echo "  make ui          Run the Vite UI dev server (direct)"
-	@echo "  make dev         Run everything (open Wrangler URL)"
-	@echo "  make preview     Preview built Pages output (website/dist)"
-	@echo "  make install     Install deps (root + UI)"
-	@echo "  make install-ui  Install UI deps only"
-	@echo ""
-	@echo "Vars:"
-	@echo "  D1_BINDING=DB    D1 binding name (default: DB)"
-	@echo "  UI_DIR=website   UI directory (default: website)"
-	@echo "  UI_PORT=5173     Vite dev server port"
-	@echo "  WORKER_PORT=8788 Wrangler dev port"
-	@echo "  PERSIST_DIR=.wrangler/state  Local state dir"
-
 install:
-	@npm install
+	@npm install --ignore-scripts
 	@$(MAKE) install-ui
 
 install-ui:
@@ -37,6 +38,9 @@ worker:
 		--port "$(WORKER_PORT)" \
 		--persist-to "$(PERSIST_DIR)"
 
+# Ensure local DB is migrated before running worker
+worker-migrated: db-migrate-local worker
+
 ui:
 	@cd "$(UI_DIR)" && npm run dev -- --port "$(UI_PORT)"
 
@@ -45,7 +49,7 @@ ui-remote:
 
 # Runs both; access app at localhost:5173. Ctrl+C stops both.
 dev:
-	@$(MAKE) worker &
+	@$(MAKE) worker-migrated &
 	@echo "Waiting for worker on port $(WORKER_PORT)..."; \
 	until nc -z localhost $(WORKER_PORT) 2>/dev/null; do sleep 0.5; done; \
 	echo "Worker ready — starting UI"; \
@@ -53,3 +57,9 @@ dev:
 
 preview:
 	@npx wrangler pages dev "$(UI_DIR)/dist"
+
+db-migrate-local:
+	@npx wrangler d1 migrations apply elbantams-auth --local
+
+db-migrate-prod:
+	@npx wrangler d1 migrations apply elbantams-auth --remote

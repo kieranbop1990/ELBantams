@@ -8,6 +8,11 @@ export function createAuth(
     database: env.DB,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: opts?.baseURL,
+    trustedOrigins: [
+      opts?.baseURL ?? "https://elbantams.pages.dev",
+      "http://localhost:5173",
+      "http://localhost:8788",
+    ],
     emailAndPassword: {
       enabled: true,
     },

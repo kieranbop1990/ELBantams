@@ -16,6 +16,8 @@ interface AdminRequest {
   userName: string;
   userEmail: string;
   teamName: string;
+  teamSlug?: string;
+  teamLeague?: string;
   date: string;
   timeStart: string;
   timeEnd: string;
@@ -32,6 +34,8 @@ interface Booking {
   timeStart: string;
   timeEnd: string;
   teamName: string;
+  teamSlug?: string;
+  teamLeague?: string;
   format: string;
   notes?: string;
   pitchName: string;
@@ -45,10 +49,14 @@ interface ApproveForm {
   notes: string;
 }
 
-function statusColor(status: string) {
-  if (status === 'approved') return 'green';
-  if (status === 'declined') return 'red';
-  return 'yellow';
+function getDurationByFormat(format: string): number {
+  return format === "5v5" || format === "7v7" ? 1 : 2;
+}
+
+function addHours(time: string, hours: number): string {
+  const [h, m] = time.split(":").map(Number);
+  const newH = (h + hours) % 24;
+  return `${String(newH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 interface Props {
@@ -104,8 +112,10 @@ export function BookingAdminPage({ clubFeedSlug }: Props) {
   }, []);
 
   const handleOpenApprove = (req: AdminRequest) => {
+    const duration = getDurationByFormat(req.format);
+    const newTimeEnd = addHours(req.timeStart, duration);
     setSelectedRequest(req);
-    setApproveForm({ pitchId: '', timeStart: req.timeStart, timeEnd: req.timeEnd, notes: '' });
+    setApproveForm({ pitchId: '', timeStart: req.timeStart, timeEnd: newTimeEnd, notes: '' });
     setError('');
     openApprove();
   };
@@ -381,7 +391,11 @@ export function BookingAdminPage({ clubFeedSlug }: Props) {
                 <input
                   type="time"
                   value={approveForm.timeStart}
-                  onChange={(e) => setApproveForm((f) => ({ ...f, timeStart: e.currentTarget.value }))}
+                  onChange={(e) => {
+                    const newStart = e.currentTarget.value;
+                    const duration = selectedRequest ? getDurationByFormat(selectedRequest.format) : 2;
+                    setApproveForm((f) => ({ ...f, timeStart: newStart, timeEnd: addHours(newStart, duration) }));
+                  }}
                   style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '14px' }}
                 />
               </Stack>
@@ -390,7 +404,7 @@ export function BookingAdminPage({ clubFeedSlug }: Props) {
                 <input
                   type="time"
                   value={approveForm.timeEnd}
-                  onChange={(e) => setApproveForm((f) => ({ ...f, timeEnd: e.currentTarget.value }))}
+                  onChange={(e) => setApproveForm((f) => ({ ...f, timeEnd: e.currentTarget?.value ?? f.timeEnd }))}
                   style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ced4da', fontSize: '14px' }}
                 />
               </Stack>
