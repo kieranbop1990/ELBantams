@@ -1,32 +1,12 @@
-import { createAuth } from "../lib/auth";
-import { ensureTables } from "../lib/ensure-tables";
-
-interface Env {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL?: string;
-}
-
-function json(res: unknown, init?: ResponseInit) {
-  return new Response(JSON.stringify(res), {
-    ...(init ?? {}),
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-}
-
-async function getSession(context: EventContext<Env, string, unknown>) {
-  await ensureTables(context.env.DB);
-  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
-  const auth = createAuth(context.env, { baseURL });
-  return auth.api.getSession({ headers: context.request.headers });
-}
+import { type Env, json, requireAuth } from "../lib/api-helpers";
 
 // POST /api/team-subscriptions
 // Body: { teamSlug, teamLeague, teamName }
 // Subscribes the current user to a team (role = 'subscriber')
 export const onRequestPost: PagesFunction<Env> = async (context) => {
-  const session = await getSession(context);
-  if (!session) return json({ error: "Not authenticated" }, { status: 401 });
+  const result = await requireAuth(context);
+  if ("error" in result) return result.error;
+  const { session } = result;
 
   const userId = (session.user as Record<string, unknown>).id as string;
 
@@ -76,8 +56,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 // Removes the current user's subscriber assignment for a team.
 // Only removes 'subscriber' roles — coach/manager assignments are admin-only.
 export const onRequestDelete: PagesFunction<Env> = async (context) => {
-  const session = await getSession(context);
-  if (!session) return json({ error: "Not authenticated" }, { status: 401 });
+  const result = await requireAuth(context);
+  if ("error" in result) return result.error;
+  const { session } = result;
 
   const userId = (session.user as Record<string, unknown>).id as string;
   const url = new URL(context.request.url);

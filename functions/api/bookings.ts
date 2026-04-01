@@ -1,11 +1,5 @@
-import { createAuth } from "../lib/auth";
 import { ensureTables } from "../lib/ensure-tables";
-
-interface Env {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL?: string;
-}
+import { type Env, json, nowMs, requireAdmin } from "../lib/api-helpers";
 
 type BookingRow = {
   id: string;
@@ -22,58 +16,6 @@ type BookingRow = {
   createdAt: number;
   requestId: string | null;
 };
-
-async function requireAuth(context: EventContext<Env, string, unknown>) {
-  await ensureTables(context.env.DB);
-  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
-  const auth = createAuth(context.env, { baseURL });
-  const session = await auth.api.getSession({ headers: context.request.headers });
-  if (!session) {
-    return {
-      error: new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }),
-    } as const;
-  }
-  return { session } as const;
-}
-
-async function requireAdmin(context: EventContext<Env, string, unknown>) {
-  await ensureTables(context.env.DB);
-  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
-  const auth = createAuth(context.env, { baseURL });
-  const session = await auth.api.getSession({ headers: context.request.headers });
-  if (!session) {
-    return {
-      error: new Response(JSON.stringify({ error: "Not authenticated" }), {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      }),
-    } as const;
-  }
-  const role = (session.user as Record<string, unknown>).role;
-  if (role !== "admin") {
-    return {
-      error: new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      }),
-    } as const;
-  }
-  return { session } as const;
-}
-
-function json(res: unknown, init?: ResponseInit) {
-  return new Response(JSON.stringify(res), {
-    ...(init ?? {}),
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-}
-
-function nowMs() {
-  return Date.now();
-}
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   await ensureTables(context.env.DB);

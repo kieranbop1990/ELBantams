@@ -1,11 +1,4 @@
-import { createAuth } from "../../lib/auth";
-import { ensureTables } from "../../lib/ensure-tables";
-
-interface Env {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL?: string;
-}
+import { type Env, json, requireAdmin } from "../../lib/api-helpers";
 
 interface LiveFixture {
   id: string;
@@ -39,23 +32,10 @@ function addDuration(time: string, hours: number): string {
   return `${String(newH).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function json(data: unknown, init?: ResponseInit) {
-  return new Response(JSON.stringify(data), {
-    ...(init ?? {}),
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-}
-
 export const onRequestPost: PagesFunction<Env> = async (context) => {
-  await ensureTables(context.env.DB);
-
-  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
-  const auth = createAuth(context.env, { baseURL });
-  const session = await auth.api.getSession({ headers: context.request.headers });
-  if (!session) return json({ error: "Not authenticated" }, { status: 401 });
-
-  const role = (session.user as Record<string, unknown>).role;
-  if (role !== "admin") return json({ error: "Admin access required" }, { status: 403 });
+  const result = await requireAdmin(context);
+  if ("error" in result) return result.error;
+  const { session } = result;
 
   const body = await context.request.json() as { clubFeedSlug?: string };
   const { clubFeedSlug } = body;

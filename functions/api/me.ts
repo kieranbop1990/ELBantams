@@ -1,36 +1,16 @@
-import { createAuth } from "../lib/auth";
-import { ensureTables } from "../lib/ensure-tables";
-
-interface Env {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL?: string;
-}
+import { type Env, json, requireAuth } from "../lib/api-helpers";
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  await ensureTables(context.env.DB);
-  const baseURL = context.env.BETTER_AUTH_URL ?? new URL(context.request.url).origin;
-  const auth = createAuth(context.env, { baseURL });
-  const session = await auth.api.getSession({
-    headers: context.request.headers,
+  const result = await requireAuth(context);
+  if ("error" in result) return result.error;
+  const { session } = result;
+
+  return json({
+    user: {
+      id: session.user.id,
+      name: session.user.name,
+      email: session.user.email,
+      role: (session.user as Record<string, unknown>).role ?? "member",
+    },
   });
-
-  if (!session) {
-    return new Response(JSON.stringify({ error: "Not authenticated" }), {
-      status: 401,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  return new Response(
-    JSON.stringify({
-      user: {
-        id: session.user.id,
-        name: session.user.name,
-        email: session.user.email,
-        role: (session.user as Record<string, unknown>).role ?? "member",
-      },
-    }),
-    { headers: { "Content-Type": "application/json" } }
-  );
 };

@@ -1,10 +1,5 @@
 import { ensureTables } from "../lib/ensure-tables";
-
-interface Env {
-  DB: D1Database;
-  BETTER_AUTH_SECRET: string;
-  BETTER_AUTH_URL?: string;
-}
+import { type Env, json } from "../lib/api-helpers";
 
 type ContactRow = {
   id: string;
@@ -12,13 +7,6 @@ type ContactRow = {
   name: string;
   email: string;
 };
-
-function json(res: unknown, init?: ResponseInit) {
-  return new Response(JSON.stringify(res), {
-    ...(init ?? {}),
-    headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
-  });
-}
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   await ensureTables(context.env.DB);

@@ -27,8 +27,7 @@ export async function loadClubSlugs(): Promise<string[]> {
   }
 }
 
-/** Fetch the full feed index — every team across all leagues. */
-export async function loadAllFeedTeams(): Promise<FeedTeamEntry[]> {
+async function loadFeedTeams(slugPrefix?: string): Promise<FeedTeamEntry[]> {
   try {
     const res = await fetch(INDEX_URL);
     if (!res.ok) return [];
@@ -36,13 +35,20 @@ export async function loadAllFeedTeams(): Promise<FeedTeamEntry[]> {
     const teams: FeedTeamEntry[] = [];
     for (const league of data.leagues) {
       for (const team of league.teams) {
-        teams.push({ name: team.name, slug: team.slug, league: league.slug });
+        if (!slugPrefix || team.slug.startsWith(slugPrefix)) {
+          teams.push({ name: team.name, slug: team.slug, league: league.slug });
+        }
       }
     }
     return teams;
   } catch {
     return [];
   }
+}
+
+/** Fetch the full feed index — every team across all leagues. */
+export async function loadAllFeedTeams(): Promise<FeedTeamEntry[]> {
+  return loadFeedTeams();
 }
 
 export function teamFeedUrl(league: string, slug: string): string {
@@ -79,25 +85,6 @@ async function loadClubFeed(feedSlug: string): Promise<ClubFeed | null> {
   }
 }
 
-async function loadLiveTeams(teamSlugPrefix: string): Promise<LiveTeam[]> {
-  try {
-    const res = await fetch(INDEX_URL);
-    if (!res.ok) return [];
-    const data = await res.json() as { leagues: { slug: string; teams: { name: string; slug: string }[] }[] };
-    const teams: LiveTeam[] = [];
-    for (const league of data.leagues) {
-      for (const team of league.teams) {
-        if (team.slug.startsWith(teamSlugPrefix)) {
-          teams.push({ name: team.name, slug: team.slug, league: league.slug });
-        }
-      }
-    }
-    return teams;
-  } catch {
-    return [];
-  }
-}
-
 /** Fetch live feeds (club feed, live teams, sidebar feeds) for a given club + teams config. */
 export async function loadFeeds(
   club: Club,
@@ -108,7 +95,7 @@ export async function loadFeeds(
 
   const [clubFeed, liveTeams] = await Promise.all([
     loadClubFeed(feedSlug),
-    loadLiveTeams(teamSlugPrefix),
+    loadFeedTeams(teamSlugPrefix),
   ]);
 
   const sidebarConfigs = teams.sections
