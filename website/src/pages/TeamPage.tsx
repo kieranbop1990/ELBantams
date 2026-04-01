@@ -7,6 +7,7 @@ import {
 import { IconCalendar, IconTrophy, IconAlertCircle, IconCopy, IconCheck, IconArrowLeft } from '@tabler/icons-react';
 import type { LiveTeam, TeamFeed, TeamContact } from '../types';
 import { loadTeamFeed, teamCalendarUrl } from '../data';
+import { useAuth } from '../context/AuthContext';
 
 const FORM_GAMES = 5;
 
@@ -72,8 +73,10 @@ function formatDate(iso: string): string {
 
 export function TeamPage({ liveTeams }: Props) {
   const { teamSlug, league } = useParams<{ teamSlug: string; league?: string }>();
+  const { user, teamRoles, refresh: refreshAuth } = useAuth();
   const [feed, setFeed] = useState<TeamFeed | null | undefined>(undefined);
   const [contacts, setContacts] = useState<TeamContact[]>([]);
+  const [subscribing, setSubscribing] = useState(false);
 
   const teamMeta = league
     ? liveTeams.find((t) => t.slug === teamSlug && t.league === league)
@@ -93,6 +96,30 @@ export function TeamPage({ liveTeams }: Props) {
       .then((d: { contacts: TeamContact[] }) => setContacts(d.contacts))
       .catch(() => setContacts([]));
   }, [teamMeta]);
+
+  const myRole = teamMeta
+    ? teamRoles.find(r => r.teamSlug === teamMeta.slug && r.teamLeague === teamMeta.league)
+    : undefined;
+
+  const handleSubscribe = async () => {
+    if (!teamMeta) return;
+    setSubscribing(true);
+    try {
+      if (myRole?.role === 'subscriber') {
+        const params = new URLSearchParams({ slug: teamMeta.slug, league: teamMeta.league });
+        await fetch(`/api/team-subscriptions?${params}`, { method: 'DELETE' });
+      } else {
+        await fetch('/api/team-subscriptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ teamSlug: teamMeta.slug, teamLeague: teamMeta.league, teamName: teamMeta.name }),
+        });
+      }
+      await refreshAuth();
+    } finally {
+      setSubscribing(false);
+    }
+  };
 
   if (!teamMeta) {
     return (
@@ -115,21 +142,33 @@ export function TeamPage({ liveTeams }: Props) {
 
       <Group justify="space-between" align="flex-start" wrap="wrap">
         <Title order={2}>{teamMeta.name}</Title>
-        <CopyButton value={calendarUrl} timeout={2000}>
-          {({ copied, copy }) => (
-            <Tooltip label={copied ? 'Copied!' : 'Copy calendar link'} withArrow>
-              <Button
-                size="sm"
-                variant="outline"
-                color={copied ? 'teal' : undefined}
-                leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
-                onClick={copy}
-              >
-                {copied ? 'Link copied!' : 'Copy calendar link'}
-              </Button>
-            </Tooltip>
+        <Group gap="xs">
+          {user && !myRole && (
+            <Button size="sm" variant="light" loading={subscribing} onClick={handleSubscribe}>
+              Follow team
+            </Button>
           )}
-        </CopyButton>
+          {user && myRole?.role === 'subscriber' && (
+            <Button size="sm" variant="subtle" color="gray" loading={subscribing} onClick={handleSubscribe}>
+              Unfollow
+            </Button>
+          )}
+          <CopyButton value={calendarUrl} timeout={2000}>
+            {({ copied, copy }) => (
+              <Tooltip label={copied ? 'Copied!' : 'Copy calendar link'} withArrow>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  color={copied ? 'teal' : undefined}
+                  leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                  onClick={copy}
+                >
+                  {copied ? 'Link copied!' : 'Copy calendar link'}
+                </Button>
+              </Tooltip>
+            )}
+          </CopyButton>
+        </Group>
       </Group>
 
       <Text size="xs" c="dimmed">
@@ -146,9 +185,6 @@ export function TeamPage({ liveTeams }: Props) {
                   {c.role}
                 </Badge>
                 <Text size="sm">{c.name}</Text>
-                <Anchor size="xs" c="dimmed" href={`mailto:${c.email}`}>
-                  {c.email}
-                </Anchor>
               </Group>
             ))}
           </Stack>

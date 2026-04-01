@@ -155,7 +155,6 @@ export function AdminUsersPage({ liveTeams }: Props) {
   const roleOptions = [
     { value: 'coach', label: 'Coach' },
     { value: 'manager', label: 'Manager' },
-    { value: 'subscriber', label: 'Subscriber' },
   ];
 
   const roleColor = (role: string) => {
