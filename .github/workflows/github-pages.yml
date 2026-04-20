@@ -1,0 +1,134 @@
+name: Deploy to GitHub Pages
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    # Only deploy from PRs if the PR is not from a fork (for security)
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository)
+    
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+      pull-requests: write  # Needed to comment on PRs
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      
+      - name: Determine base path
+        id: base
+        run: |
+          echo "Repository name: ${{ github.event.repository.name }}"
+          echo "Event type: ${{ github.event_name }}"
+          
+          # For PR previews, use a unique base path to avoid conflicts
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BASE_PATH="/pr-$PR_NUMBER/"
+            echo "PR preview detected, using base path: $BASE_PATH"
+            echo "BASE_PATH=$BASE_PATH" >> "$GITHUB_OUTPUT"
+            echo "IS_PR_PREVIEW=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.event.repository.name }}" == *.github.io ]]; then
+            BASE_PATH="./"
+            echo "User/organization site detected, using base path: $BASE_PATH"
+            echo "BASE_PATH=$BASE_PATH" >> "$GITHUB_OUTPUT"
+            echo "IS_PR_PREVIEW=false" >> "$GITHUB_OUTPUT"
+          else
+            BASE_PATH="/${{ github.event.repository.name }}/"
+            echo "Project site detected, using base path: $BASE_PATH"
+            echo "BASE_PATH=$BASE_PATH" >> "$GITHUB_OUTPUT"
+            echo "IS_PR_PREVIEW=false" >> "$GITHUB_OUTPUT"
+          fi
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: website/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+        working-directory: website
+        
+      - name: Build project
+        run: npm run build
+        working-directory: website
+        env:
+          VITE_BASE_PATH: ${{ steps.base.outputs.BASE_PATH }}
+        
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+        
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: website/dist
+        
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+      
+      - name: Get deployment URL
+        id: deployment-url
+        run: |
+          DEPLOYMENT_URL="${{ steps.deployment.outputs.page_url }}"
+          echo "Deployment URL: $DEPLOYMENT_URL"
+          echo "DEPLOYMENT_URL=$DEPLOYMENT_URL" >> "$GITHUB_OUTPUT"
+      
+      - name: Comment on PR with preview URL
+        if: github.event_name == 'pull_request' && steps.base.outputs.IS_PR_PREVIEW == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { DEPLOYMENT_URL } = process.env;
+            const prNumber = context.issue.number;
+            
+            // Create or update comment with preview URL
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('GitHub Pages Preview')
+            );
+            
+            const commentBody = `### 🌐 GitHub Pages Preview\n\n✅ Your changes have been deployed to GitHub Pages!\n\n🔗 **Preview URL:** ${DEPLOYMENT_URL}\n\n_This preview will be automatically removed when the PR is closed._`;
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: commentBody,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody,
+              });
+            }
+        env:
+          DEPLOYMENT_URL: ${{ steps.deployment-url.outputs.DEPLOYMENT_URL }}
