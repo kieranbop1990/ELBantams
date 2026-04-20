@@ -71,14 +71,28 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
   // Use composite key (team + league) so same-named Saturday/Sunday teams stay separate
   const fixtureKey = (f: LiveFixture | LiveResult) => `${f.team}\0${f.league}`;
 
-  // SIMPLE FIX: Get team names from the section configuration directly
+  // Get team names from the section by matching slugs to liveTeams
   const allowedTeamNames = useMemo(() => {
     if (activeSection === 'all') return null;
     const section = teams.sections.find(s => s.id === activeSection);
     if (!section) return null;
-    // Get all team names from the section
-    return new Set(section.teams.map(t => t.name));
-  }, [activeSection, teams]);
+    
+    // Get all team names from liveTeams that match slugs in this section
+    const teamNames = new Set<string>();
+    
+    for (const team of section.teams) {
+      if (team.slug) {
+        // Find live teams with matching slug
+        const matchingLiveTeams = liveTeams.filter(lt => lt.slug === team.slug);
+        // Add all matching live team names
+        matchingLiveTeams.forEach(lt => teamNames.add(lt.name));
+      }
+      // Note: For teams without slugs (like junior teams), we can't match them yet
+      // The user mentioned dynamic age groups will be handled separately
+    }
+    
+    return teamNames;
+  }, [activeSection, teams, liveTeams]);
 
   const duplicateNames = useMemo(() => findDuplicateTeamNames(liveTeams), [liveTeams]);
 
@@ -107,7 +121,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
   // Reset team dropdown when it's no longer in the available list
   const effectiveTeam = selectedTeam && teamOptions.some(o => o.value === selectedTeam) ? selectedTeam : null;
 
-  // SIMPLE FIX: Filter by team name only (no league matching needed)
+  // Filter by team name from liveTeams that match section slugs
   const isAllowed = (f: LiveFixture | LiveResult) => {
     if (!allowedTeamNames) return true;
     return allowedTeamNames.has(f.team);
