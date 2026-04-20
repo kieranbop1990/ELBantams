@@ -2,24 +2,88 @@ import type { LiveTeam, Team, TeamSection } from '../types';
 
 /** Find the live team matching a direct slug. */
 export function teamBySlug(liveTeams: LiveTeam[], slug: string): LiveTeam | null {
-  return liveTeams.find((t) => t.slug === slug) ?? null;
+  // Use the same improved matching logic
+  const matches = liveTeams.filter((t) => {
+    const normalizeSlug = (s: string) => s.toLowerCase().replace(/_/g, '-').trim();
+    const norm1 = normalizeSlug(t.slug);
+    const norm2 = normalizeSlug(slug);
+    return norm1 === norm2 || 
+           norm2.endsWith(`-${norm1}`) || 
+           norm1.endsWith(`-${norm2}`) ||
+           norm2.includes(norm1) || 
+           norm1.includes(norm2);
+  });
+  return matches[0] ?? null;
 }
 
 /** Find all live teams matching an "Under X" age group name. */
 export function matchingTeamsByAge(liveTeams: LiveTeam[], teamName: string): LiveTeam[] {
-  const m = teamName.match(/Under\s+(\d+)/i);
-  if (!m) return [];
-  const tag = `-u${m[1]}`.toLowerCase();
-  return liveTeams.filter((t) => t.slug.includes(tag));
+  // Try to extract age from team name using various patterns
+  const ageMatch = teamName.match(/(?:Under|U|u)\s*(\d+)/i);
+  if (!ageMatch) return [];
+  
+  const age = ageMatch[1];
+  
+  // Try multiple age patterns in slug
+  const agePatterns = [
+    `-u${age}`,      // "-u13" (current pattern)
+    `-under-${age}`, // "-under-13"
+    `u${age}`,       // "u13"
+    `under${age}`,   // "under13"
+    `under-${age}`,  // "under-13"
+  ];
+  
+  return liveTeams.filter((t) => {
+    const normalizedSlug = t.slug.toLowerCase();
+    return agePatterns.some(pattern => normalizedSlug.includes(pattern));
+  });
 }
 
 /** Return all live teams that correspond to a config team entry. */
 export function liveTeamsForTeam(team: Team, liveTeams: LiveTeam[]): LiveTeam[] {
+  // Helper to normalize slugs for comparison
+  const normalizeSlug = (slug: string): string => {
+    return slug.toLowerCase().replace(/_/g, '-').trim();
+  };
+
+  // Helper to check if two slugs match with various strategies
+  const slugsMatch = (slug1: string, slug2: string): boolean => {
+    const norm1 = normalizeSlug(slug1);
+    const norm2 = normalizeSlug(slug2);
+    
+    // 1. Exact normalized match
+    if (norm1 === norm2) return true;
+    
+    // 2. Suffix match (e.g., "under-13-youth" vs "club-prefix-under-13-youth")
+    if (norm2.endsWith(`-${norm1}`) || norm1.endsWith(`-${norm2}`)) return true;
+    
+    // 3. Contains match (e.g., "u13" vs "under-13-youth")
+    if (norm2.includes(norm1) || norm1.includes(norm2)) return true;
+    
+    return false;
+  };
+
+  // 1. Try exact match first (original behavior)
   if (team.slug) {
-    // When a slug matches multiple leagues, return all matches (not just the first)
-    const matches = liveTeams.filter((t) => t.slug === team.slug);
-    return matches.length > 0 ? matches : [];
+    const exactMatches = liveTeams.filter((t) => t.slug === team.slug);
+    if (exactMatches.length > 0) return exactMatches;
+    
+    // 2. Try normalized slug matching with multiple strategies
+    const normalizedMatches = liveTeams.filter((t) => slugsMatch(t.slug, team.slug));
+    if (normalizedMatches.length > 0) return normalizedMatches;
+    
+    // 3. Try matching by team name as fallback
+    const nameMatches = liveTeams.filter((t) => 
+      t.name.toLowerCase() === team.name.toLowerCase()
+    );
+    if (nameMatches.length > 0) return nameMatches;
+    
+    // 4. Even with slug, try age-based matching as last resort
+    const ageMatches = matchingTeamsByAge(liveTeams, team.name);
+    if (ageMatches.length > 0) return ageMatches;
   }
+  
+  // Fallback to age-based matching for teams without slugs
   return matchingTeamsByAge(liveTeams, team.name);
 }
 
