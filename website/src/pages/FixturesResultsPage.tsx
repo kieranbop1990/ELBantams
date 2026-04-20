@@ -71,12 +71,14 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
   // Use composite key (team + league) so same-named Saturday/Sunday teams stay separate
   const fixtureKey = (f: LiveFixture | LiveResult) => `${f.team}\0${f.league}`;
 
-  const allowedKeys = useMemo(() => {
+  // SIMPLE FIX: Get team names from the section configuration directly
+  const allowedTeamNames = useMemo(() => {
     if (activeSection === 'all') return null;
     const section = teams.sections.find(s => s.id === activeSection);
     if (!section) return null;
-    return new Set(liveTeamsForSection(section, liveTeams).map(t => leagueQualifiedSlug(t)));
-  }, [activeSection, teams, liveTeams]);
+    // Get all team names from the section
+    return new Set(section.teams.map(t => t.name));
+  }, [activeSection, teams]);
 
   const duplicateNames = useMemo(() => findDuplicateTeamNames(liveTeams), [liveTeams]);
 
@@ -86,12 +88,11 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
     for (const f of feed.fixtures) if (f.team) keys.add(fixtureKey(f));
     for (const r of feed.results) if (r.team) keys.add(fixtureKey(r));
 
-    // If section is filtered, only keep keys whose team name+league match allowed live teams
-    const filtered = allowedKeys
+    // If section is filtered, only keep keys whose team name matches allowed team names
+    const filtered = allowedTeamNames
       ? Array.from(keys).filter(k => {
-          const [name, league] = k.split('\0');
-          // Check if any allowed live team matches this feed entry
-          return liveTeams.some(lt => allowedKeys.has(leagueQualifiedSlug(lt)) && lt.name === name && lt.league === league);
+          const [name] = k.split('\0');
+          return allowedTeamNames.has(name);
         })
       : Array.from(keys);
 
@@ -101,14 +102,15 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
         return { value: k, label: teamDisplayLabel(name, league, duplicateNames) };
       })
       .sort((a, b) => a.label.localeCompare(b.label));
-  }, [feed, allowedKeys, liveTeams, duplicateNames]);
+  }, [feed, allowedTeamNames, duplicateNames]);
 
   // Reset team dropdown when it's no longer in the available list
   const effectiveTeam = selectedTeam && teamOptions.some(o => o.value === selectedTeam) ? selectedTeam : null;
 
+  // SIMPLE FIX: Filter by team name only (no league matching needed)
   const isAllowed = (f: LiveFixture | LiveResult) => {
-    if (!allowedKeys) return true;
-    return liveTeams.some(lt => allowedKeys.has(leagueQualifiedSlug(lt)) && lt.name === f.team && lt.league === f.league);
+    if (!allowedTeamNames) return true;
+    return allowedTeamNames.has(f.team);
   };
 
   const fixtures = useMemo(() => {
@@ -125,7 +127,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
       });
     }
     return [...list].sort((a, b) => a.date.localeCompare(b.date) || a.time.localeCompare(b.time));
-  }, [feed, effectiveTeam, allowedKeys, liveTeams]);
+  }, [feed, effectiveTeam, allowedTeamNames]);
 
   const results = useMemo(() => {
     if (!feed) return [];
@@ -141,7 +143,7 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
       });
     }
     return [...list].sort((a, b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
-  }, [feed, effectiveTeam, allowedKeys, liveTeams]);
+  }, [feed, effectiveTeam, allowedTeamNames]);
 
   if (!feed) {
     return (
