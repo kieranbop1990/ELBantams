@@ -98,14 +98,14 @@ This approach lets clubs pull upstream improvements (new features, bug fixes) fr
 
 ## Live Fixture Feeds
 
-The site can show live fixtures and results from the FA Full-Time system via [fulltimeCalendar](https://github.com/adamsuk/fulltimeCalendar).
+The site can show live fixtures and results from the FA Full-Time system via [fulltimeFeeds](https://github.com/touchlineHQ/fulltimeFeeds).
 
 To connect your club:
 1. Set `clubFeedSlug` in club.json to your club's slug (e.g. `"my-club"`)
 2. Set `teamSlugPrefix` to filter your teams (e.g. `"my-club-"`)
 3. Set individual team `slug` fields in teams.json to match feed team names
 
-If your club isn't in the fulltimeCalendar system yet, the fixtures pages will gracefully show "unavailable" — everything else works fine without it.
+If your club isn't in the fulltimeFeeds system yet, the fixtures pages will gracefully show "unavailable" — everything else works fine without it.
 
 ---
 

@@ -98,7 +98,7 @@ website/
 
 All site content is driven by JSON files in `public/data/` — no code changes needed for most updates. Edit the relevant JSON file and push to `main` to redeploy.
 
-Bantams youth team fixtures and results are loaded automatically from the [fulltimeCalendar](https://github.com/adamsuk/fulltimeCalendar) feed.
+Bantams youth team fixtures and results are loaded automatically from the [fulltimeFeeds](https://github.com/touchlineHQ/fulltimeFeeds) feed.
 
 ## Pages
 

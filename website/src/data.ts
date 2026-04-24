@@ -1,10 +1,10 @@
 import type { AppData, Club, ClubFeed, CommitteeData, GalleryItem, LiveTeam, MatchdayItem, NewsItem, RegistrationItem, TeamFeed, TeamsData } from './types';
 
 const BASE = 'data/';
-const FEEDS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/feeds/';
-const CALENDARS_BASE = 'https://raw.githubusercontent.com/adamsuk/fulltimeCalendar/main/calendars/';
+const FEEDS_BASE = 'https://raw.githubusercontent.com/touchlineHQ/fulltimeFeeds/main/feeds/';
+const CALENDARS_BASE = 'https://raw.githubusercontent.com/touchlineHQ/fulltimeFeeds/main/calendars/';
 const INDEX_URL = `${FEEDS_BASE}index.json`;
-const CLUBS_API_URL = 'https://api.github.com/repos/adamsuk/fulltimeCalendar/contents/feeds/clubs';
+const CLUBS_API_URL = 'https://api.github.com/repos/touchlineHQ/fulltimeFeeds/contents/feeds/clubs';
 
 export interface FeedTeamEntry {
   name: string;

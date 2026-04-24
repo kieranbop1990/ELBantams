@@ -187,8 +187,8 @@ export function FixturesResultsPage({ feed, teams, liveTeams }: Props) {
 
       <Text size="sm" c="dimmed">
         Data sourced from FA Full-Time via{' '}
-        <Text component="a" href="https://github.com/adamsuk/fulltimeCalendar" c="var(--mantine-primary-color-filled)" size="sm">
-          fulltimeCalendar
+        <Text component="a" href="https://github.com/touchlineHQ/fulltimeFeeds" c="var(--mantine-primary-color-filled)" size="sm">
+          fulltimeFeeds
         </Text>
         . Last updated: {new Date(feed.generated).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}.
       </Text>

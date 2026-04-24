@@ -143,7 +143,7 @@ export function TeamsForm({ teams, onChange, feedTeams, teamSlugPrefix }: Props)
       <Title order={4}>Teams & Sections</Title>
       {matchingFeedTeams && matchingFeedTeams.length > 0 && (
         <Alert icon={<IconInfoCircle size={16} />} variant="light">
-          <Text size="xs" mb={4}>{matchingFeedTeams.length} teams found in fulltimeCalendar matching prefix "{teamSlugPrefix}". Copy a slug below into the "Feed Team Slug" field for each team.{duplicateSlugs.size > 0 && ' Note: some teams appear in both Saturday and Sunday leagues — they share the same slug but have separate fixtures.'}</Text>
+          <Text size="xs" mb={4}>{matchingFeedTeams.length} teams found in fulltimeFeeds matching prefix "{teamSlugPrefix}". Copy a slug below into the "Feed Team Slug" field for each team.{duplicateSlugs.size > 0 && ' Note: some teams appear in both Saturday and Sunday leagues — they share the same slug but have separate fixtures.'}</Text>
           <Group gap={4} wrap="wrap">
             {matchingFeedTeams.map(t => (
               <Badge key={`${t.league}/${t.slug}`} variant="outline" size="sm" style={{ textTransform: 'none' }}>

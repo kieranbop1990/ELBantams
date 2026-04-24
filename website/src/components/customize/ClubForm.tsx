@@ -89,7 +89,7 @@ export function ClubForm({ club, onChange, clubSlugs }: Props) {
         <TextInput label="Kit Description" value={club.kitDescription ?? ''} onChange={e => update('kitDescription', e.target.value)} />
       </Group>
 
-      <Divider label="Live Feeds (fulltimeCalendar)" />
+      <Divider label="Live Feeds (fulltimeFeeds)" />
 
       <Alert icon={<IconInfoCircle size={16} />} variant="light" mb="xs">
         <Text size="xs">Select your club from the dropdown to connect live fixtures. If your club isn't listed, you can type a slug manually. The team prefix filters which teams appear in your feeds.</Text>
